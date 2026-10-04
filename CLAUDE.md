@@ -13,7 +13,7 @@ Limitation: author and reviewer share one GitHub account, and GitHub does not al
 
 ## Commands
 
-- Server: `cd server && npm start`, tests: `npm test`.
+- Server: `cd server && npm start`, tests: `npm test`. Schema changes go through `MIGRATIONS` in `server/src/db.ts` (append-only).
 - Client: `cd app && flutter analyze && flutter test`. Run on a simulator: `flutter run --dart-define=API_URL=http://localhost:3000` (a real device needs the Mac's LAN address and an https or ATS-exempt URL).
 
 ## Skills

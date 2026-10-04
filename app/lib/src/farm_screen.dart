@@ -60,11 +60,11 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
-  Future<void> _refresh() async {
+  Future<void> _refresh({bool quiet = false}) async {
     try {
       _apply(await widget.api.farm());
     } on ApiException catch (e) {
-      _showError(e);
+      if (!quiet) _showError(e);
     }
   }
 
@@ -99,6 +99,9 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
       }
     } on ApiException catch (e) {
       _showError(e);
+      // Status 0: the request may have reached the server even though the reply was lost,
+      // so the screen could be stale. Re-read the truth from the server.
+      if (e.status == 0) await _refresh(quiet: true);
     }
   }
 

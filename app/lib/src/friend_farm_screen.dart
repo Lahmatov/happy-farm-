@@ -87,7 +87,16 @@ class _FriendFarmScreenState extends State<FriendFarmScreen> {
       appBar: AppBar(title: Text('Ферма: ${widget.friend.name}')),
       body: SafeArea(
         child: _error != null
-            ? Center(child: Text(_error!))
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_error!),
+                    const SizedBox(height: 12),
+                    FilledButton(onPressed: _load, child: const Text('Повторить')),
+                  ],
+                ),
+              )
             : _farm == null
                 ? const Center(child: CircularProgressIndicator())
                 : GameWidget(game: _game),

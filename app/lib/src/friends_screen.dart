@@ -30,16 +30,19 @@ class _FriendsScreenState extends State<FriendsScreen> {
     super.dispose();
   }
 
-  Future<void> _run(Future<List<Friend>> Function() call) async {
+  /// Returns true on success.
+  Future<bool> _run(Future<List<Friend>> Function() call) async {
     try {
       final friends = await call();
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() {
         _friends = friends;
         _error = null;
       });
+      return true;
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = localize(e.message));
+      return false;
     }
   }
 
@@ -70,7 +73,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
             ),
             Expanded(
               child: friends == null
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(
+                      child: _error == null
+                          ? const CircularProgressIndicator()
+                          : FilledButton(
+                              onPressed: () {
+                                setState(() => _error = null);
+                                _run(widget.api.friends);
+                              },
+                              child: const Text('Повторить'),
+                            ),
+                    )
                   : friends.isEmpty
                       ? const Center(child: Text('Пока нет соседей. Добавьте друга по имени.'))
                       : ListView(
@@ -95,10 +108,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 
-  void _add() {
+  Future<void> _add() async {
     final name = _name.text.trim();
     if (name.isEmpty) return;
-    _run(() => widget.api.addFriend(name));
-    _name.clear();
+    // Keep the text on failure so the player can fix a typo instead of retyping.
+    if (await _run(() => widget.api.addFriend(name))) _name.clear();
   }
 }

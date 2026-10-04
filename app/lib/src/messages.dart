@@ -13,6 +13,10 @@ const _ru = {
   'user not found': 'Игрок не найден',
   'cannot befriend yourself': 'Нельзя дружить с самим собой',
   'cannot steal from yourself': 'Нельзя красть у себя',
+  'unauthorized': 'Нужно войти заново',
+  'bad plot': 'Нет такой грядки',
+  'unknown crop': 'Неизвестная культура',
+  'all plots unlocked': 'Все грядки уже куплены',
   'name taken': 'Это имя уже занято',
   'name must be 2-20 chars': 'Имя: от 2 до 20 символов',
 };

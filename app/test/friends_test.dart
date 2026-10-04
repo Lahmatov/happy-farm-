@@ -36,6 +36,7 @@ Future<void> pumpFrames(WidgetTester tester) async {
 }
 
 void main() {
+  resilienceTests();
   test('friend endpoints parse', () async {
     final api = ApiClient(
       baseUrl: 'http://x',
@@ -126,5 +127,61 @@ void main() {
     ]);
 
     await tester.pumpWidget(const SizedBox()); // stop the ticker
+  });
+}
+
+void resilienceTests() {
+  testWidgets('friends screen: failed first load offers a retry that recovers', (tester) async {
+    var calls = 0;
+    final api = ApiClient(
+      baseUrl: 'http://x',
+      client: MockClient((req) async {
+        calls++;
+        if (calls == 1) throw http.ClientException('down');
+        return json([
+          {'id': 2, 'name': 'Boris', 'level': 1}
+        ]);
+      }),
+    );
+    await tester.pumpWidget(MaterialApp(home: FriendsScreen(api: api)));
+    await pumpFrames(tester);
+    expect(find.text('Повторить'), findsOneWidget);
+    await tester.tap(find.text('Повторить'));
+    await pumpFrames(tester);
+    expect(find.text('Boris'), findsOneWidget);
+  });
+
+  testWidgets('friends screen keeps the typed name when adding fails', (tester) async {
+    final api = ApiClient(
+      baseUrl: 'http://x',
+      client: MockClient((req) async =>
+          req.method == 'POST' ? json({'error': 'user not found'}, 404) : json(<Object>[])),
+    );
+    await tester.pumpWidget(MaterialApp(home: FriendsScreen(api: api)));
+    await pumpFrames(tester);
+    await tester.enterText(find.byType(TextField), 'Borsi');
+    await tester.tap(find.text('Добавить'));
+    await pumpFrames(tester);
+    expect(find.text('Borsi'), findsOneWidget); // still in the field
+  });
+
+  testWidgets('friend farm: failed load offers a retry that recovers', (tester) async {
+    var calls = 0;
+    final api = ApiClient(
+      baseUrl: 'http://x',
+      client: MockClient((req) async {
+        calls++;
+        if (calls == 1) throw http.ClientException('down');
+        return json(farmJson());
+      }),
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: FriendFarmScreen(api: api, friend: const Friend(id: 2, name: 'Boris', level: 1)),
+    ));
+    await pumpFrames(tester);
+    await tester.tap(find.text('Повторить'));
+    await pumpFrames(tester);
+    expect(find.byWidgetPredicate((w) => w is GameWidget), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
   });
 }

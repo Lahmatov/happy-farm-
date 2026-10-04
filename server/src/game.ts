@@ -25,14 +25,25 @@ export class Game {
     this.now = now;
   }
 
-  register(name: string) {
+  /**
+   * `clientId` is a random secret the device generates once per sign-up attempt. If the
+   * reply was lost and the device retries with the same name and clientId, it gets its own
+   * account back; anyone else with that name still gets "name taken".
+   */
+  register(name: string, clientId?: string) {
     name = name.trim();
     if (name.length < 2 || name.length > 20) throw new GameError(400, 'name must be 2-20 chars');
-    if (this.db.prepare('SELECT 1 FROM users WHERE name = ?').get(name)) throw new GameError(409, 'name taken');
+    if (clientId !== undefined && !/^[0-9a-f]{32}$/.test(clientId)) throw new GameError(400, 'bad clientId');
+    const existing = this.db.prepare('SELECT id, token, client_id FROM users WHERE name = ?')
+      .get(name) as { id: number; token: string; client_id: string | null } | undefined;
+    if (existing) {
+      if (clientId && existing.client_id === clientId) return { token: existing.token, farm: this.farm(existing.id) };
+      throw new GameError(409, 'name taken');
+    }
     const token = randomBytes(24).toString('hex');
     const { lastInsertRowid } = this.db
-      .prepare('INSERT INTO users (name, token, coins, unlocked_plots) VALUES (?, ?, ?, ?)')
-      .run(name, token, START_COINS, START_PLOTS);
+      .prepare('INSERT INTO users (name, token, coins, unlocked_plots, client_id) VALUES (?, ?, ?, ?, ?)')
+      .run(name, token, START_COINS, START_PLOTS, clientId ?? null);
     const ins = this.db.prepare('INSERT INTO plots (user_id, idx) VALUES (?, ?)');
     for (let i = 0; i < TOTAL_PLOTS; i++) ins.run(lastInsertRowid, i);
     return { token, farm: this.farm(Number(lastInsertRowid)) };
