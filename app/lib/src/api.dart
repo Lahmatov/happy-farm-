@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -23,10 +24,11 @@ class HarvestResult {
 
 class ApiClient {
   final String baseUrl;
+  final Duration timeout;
   final http.Client _http;
   String? token;
 
-  ApiClient({required this.baseUrl, this.token, http.Client? client}) : _http = client ?? http.Client();
+  ApiClient({required this.baseUrl, this.token, http.Client? client, this.timeout = const Duration(seconds: 15)}) : _http = client ?? http.Client();
 
   /// Sends a request and parses the JSON reply with [parse]. Anything unexpected
   /// (non-JSON body, missing or mistyped field) becomes an [ApiException].
@@ -39,9 +41,11 @@ class ApiClient {
     final http.Response res;
     try {
       res = method == 'GET'
-          ? await _http.get(uri, headers: headers)
-          : await _http.post(uri, headers: headers, body: jsonEncode(body ?? {}));
+          ? await _http.get(uri, headers: headers).timeout(timeout)
+          : await _http.post(uri, headers: headers, body: jsonEncode(body ?? {})).timeout(timeout);
     } on http.ClientException {
+      throw ApiException(0, 'Нет связи с сервером');
+    } on TimeoutException {
       throw ApiException(0, 'Нет связи с сервером');
     }
     try {
@@ -52,7 +56,9 @@ class ApiClient {
       }
       return parse(decoded);
     } on FormatException {
-      throw ApiException(res.statusCode, 'Неожиданный ответ сервера (${res.statusCode})');
+      // Status 0, not res.statusCode: an HTML 401 from a captive portal or proxy must not
+      // look like "the server rejected my token" (that logs the player out).
+      throw ApiException(0, 'Неожиданный ответ сервера (${res.statusCode})');
     } on TypeError {
       throw ApiException(res.statusCode, 'Неожиданный ответ сервера');
     }

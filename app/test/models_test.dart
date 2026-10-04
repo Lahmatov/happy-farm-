@@ -13,6 +13,10 @@ void main() {
     expect(stageOf(p, 160), PlotStage.ripe);
   });
 
+  test('a plot with a crop but no readyAt does not throw', () {
+    expect(stageOf(plot(crop: 'radish', planted: 1), 5), PlotStage.growing);
+  });
+
   test('growth progress is clamped to 0..1', () {
     final p = plot(crop: 'radish', planted: 100, ready: 200);
     expect(growthProgress(p, 50), 0);
