@@ -22,6 +22,14 @@ class HarvestResult {
   HarvestResult(this.earned, this.xp, this.levelUp, this.farm);
 }
 
+class StealResult {
+  final int amount;
+  final int earned;
+  final int xp;
+  final Farm farm;
+  StealResult(this.amount, this.earned, this.xp, this.farm);
+}
+
 class ApiClient {
   final String baseUrl;
   final Duration timeout;
@@ -93,4 +101,18 @@ class ApiClient {
   }
 
   Future<Farm> unlockPlot() => _call('POST', '/unlock-plot', _farm);
+
+  static List<Friend> _friends(dynamic j) => (j as List).map((f) => Friend.fromJson(f as Map<String, dynamic>)).toList();
+
+  Future<List<Friend>> friends() => _call('GET', '/friends', _friends);
+
+  /// Friendship is mutual, as in VK.
+  Future<List<Friend>> addFriend(String name) => _call('POST', '/friends', _friends, {'name': name});
+
+  Future<Farm> friendFarm(int friendId) => _call('GET', '/friends/$friendId/farm', _farm);
+
+  Future<StealResult> steal(int friendId, int plot) => _call('POST', '/friends/$friendId/steal', (j) {
+        j as Map<String, dynamic>;
+        return StealResult(j['amount'] as int, j['earned'] as int, j['xp'] as int, _farm(j['farm']));
+      }, {'plot': plot});
 }
