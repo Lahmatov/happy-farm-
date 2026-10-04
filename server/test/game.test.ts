@@ -65,3 +65,9 @@ test('unlock plot costs coins', () => {
   const a = id(game, game.register('Anna').token);
   assert.throws(() => game.unlockPlot(a), /not enough coins/);
 });
+
+test('farm tells the client the plot unlock price', () => {
+  const { game } = setup();
+  const a = id(game, game.register('Anna').token);
+  assert.equal(game.farm(a).plotUnlockPrice, 500);
+});

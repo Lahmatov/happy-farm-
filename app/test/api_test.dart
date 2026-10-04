@@ -6,10 +6,11 @@ import 'package:http/testing.dart';
 import 'package:happy_farm/src/api.dart';
 
 const farmJson = {
-  'id': 1, 'name': 'Anna', 'coins': 200, 'xp': 0, 'level': 1, 'serverTime': 1000, 'plots': [],
+  'id': 1, 'name': 'Anna', 'coins': 200, 'xp': 0, 'level': 1, 'plotUnlockPrice': 500, 'serverTime': 1000, 'plots': [],
 };
 
 void main() {
+  errorCases();
   test('register stores the token and sends it on later calls', () async {
     final seen = <http.Request>[];
     final api = ApiClient(
@@ -40,5 +41,23 @@ void main() {
   test('network failure is reported as status 0', () async {
     final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) async => throw http.ClientException('down')));
     expect(api.farm(), throwsA(isA<ApiException>().having((e) => e.status, 'status', 0)));
+  });
+}
+
+void errorCases() {
+  test('a non-JSON reply (e.g. an HTML 502) becomes ApiException', () async {
+    final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) async => http.Response('<html>Bad Gateway</html>', 502)));
+    expect(api.farm(), throwsA(isA<ApiException>().having((e) => e.status, 'status', 502)));
+  });
+
+  test('a reply with a missing field becomes ApiException, not a crash', () async {
+    final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) async => http.Response(jsonEncode({'id': 1}), 200)));
+    expect(api.farm(), throwsA(isA<ApiException>()));
+  });
+
+  test('register does not keep a token when the reply is malformed', () async {
+    final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) async => http.Response(jsonEncode({'token': 'abc'}), 201)));
+    await expectLater(api.register('Anna'), throwsA(isA<ApiException>()));
+    expect(api.token, isNull);
   });
 }

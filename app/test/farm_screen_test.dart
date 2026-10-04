@@ -15,7 +15,7 @@ Map<String, dynamic> plotJson(int i) =>
 void main() {
   testWidgets('tapping an empty plot opens the seed picker and plants', (tester) async {
     final farmJson = {
-      'id': 1, 'name': 'Anna', 'coins': 200, 'xp': 0, 'level': 1, 'serverTime': 1000,
+      'id': 1, 'name': 'Anna', 'coins': 200, 'xp': 0, 'level': 1, 'plotUnlockPrice': 500, 'serverTime': 1000,
       'plots': [for (var i = 0; i < 24; i++) plotJson(i)],
     };
     final planted = <Map<String, dynamic>>[];

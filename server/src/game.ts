@@ -74,7 +74,10 @@ export class Game {
         ready: this.ready(p),
         stolenShare: p.stolen_share,
       }));
-    return { id: u.id, name: u.name, coins: u.coins, xp: u.xp, level: levelForXp(u.xp), plots, serverTime: this.now() };
+    return {
+      id: u.id, name: u.name, coins: u.coins, xp: u.xp, level: levelForXp(u.xp), plots,
+      plotUnlockPrice: PLOT_UNLOCK_PRICE, serverTime: this.now(),
+    };
   }
 
   catalog() {

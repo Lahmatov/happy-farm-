@@ -21,7 +21,7 @@ class HappyFarmApp extends StatefulWidget {
 class _HappyFarmAppState extends State<HappyFarmApp> {
   final _storage = const FlutterSecureStorage(); // iOS Keychain
   final _api = ApiClient(baseUrl: _apiUrl);
-  late final Future<Farm?> _start = _restoreSession();
+  late Future<Farm?> _start = _restoreSession();
   Farm? _farm;
 
   Future<Farm?> _restoreSession() async {
@@ -52,7 +52,21 @@ class _HappyFarmAppState extends State<HappyFarmApp> {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
           if (snap.hasError) {
-            return Scaffold(body: Center(child: Text('${snap.error}')));
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${snap.error}'),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: () => setState(() => _start = _restoreSession()),
+                      child: const Text('Повторить'),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
           final farm = _farm ?? snap.data;
           if (farm != null) return FarmScreen(api: _api, initial: farm);

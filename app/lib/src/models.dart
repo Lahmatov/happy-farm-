@@ -65,6 +65,7 @@ class Farm {
   final int xp;
   final int level;
   final List<Plot> plots;
+  final int plotUnlockPrice;
   final int serverTime;
 
   const Farm({
@@ -74,6 +75,7 @@ class Farm {
     required this.xp,
     required this.level,
     required this.plots,
+    required this.plotUnlockPrice,
     required this.serverTime,
   });
 
@@ -84,6 +86,7 @@ class Farm {
         xp: j['xp'] as int,
         level: j['level'] as int,
         plots: (j['plots'] as List).map((p) => Plot.fromJson(p as Map<String, dynamic>)).toList(),
+        plotUnlockPrice: j['plotUnlockPrice'] as int,
         serverTime: j['serverTime'] as int,
       );
 }
