@@ -9,6 +9,8 @@
 
 *Скриншот собран тестом `app/test/scene_test.dart` (шрифт в тестах заменён квадратами, на устройстве текст обычный). Вся графика оригинальная и генерируется кодом, см. `tools/sprites/README.md`.*
 
+Графика сейчас MVP. Подробное ТЗ с промтами для новой, более «пышной» графики: [docs/ART_BRIEF.md](docs/ART_BRIEF.md).
+
 ## API
 
 `POST /register {name}` → `{token, farm}`; дальше заголовок `Authorization: Bearer <token>`.
