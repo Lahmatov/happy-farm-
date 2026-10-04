@@ -28,7 +28,7 @@ export function createApp(game: Game): Server {
       const body = req.method === 'POST' ? await readJson(req) : {};
       const auth = () => game.authenticate(req.headers.authorization?.replace(/^Bearer /, ''));
 
-      if (route === 'POST /register') return send(201, game.register(String(body.name ?? '')));
+      if (route === 'POST /register') return send(201, game.register(String(body.name ?? ''), body.clientId === undefined ? undefined : String(body.clientId)));
       if (route === 'GET /catalog') return send(200, game.catalog());
       if (route === 'GET /farm') return send(200, game.farm(auth()));
       if (route === 'POST /plant') return send(200, game.plant(auth(), int(body.plot, 'plot'), String(body.cropId)));

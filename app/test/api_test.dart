@@ -22,8 +22,9 @@ void main() {
         return http.Response(jsonEncode(farmJson), 200);
       }),
     );
-    await api.register('Anna');
+    await api.register('Anna', 'c' * 32);
     await api.farm();
+    expect(jsonDecode(seen[0].body)['clientId'], 'c' * 32);
     expect(seen[0].headers['authorization'], isNull);
     expect(seen[1].headers['authorization'], 'Bearer abc');
   });
@@ -73,7 +74,7 @@ void errorCases() {
 
   test('register does not keep a token when the reply is malformed', () async {
     final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) async => http.Response(jsonEncode({'token': 'abc'}), 201)));
-    await expectLater(api.register('Anna'), throwsA(isA<ApiException>()));
+    await expectLater(api.register('Anna', 'c' * 32), throwsA(isA<ApiException>()));
     expect(api.token, isNull);
   });
 }

@@ -71,3 +71,25 @@ test('farm tells the client the plot unlock price', () => {
   const a = id(game, game.register('Anna').token);
   assert.equal(game.farm(a).plotUnlockPrice, 500);
 });
+
+const CID = 'a'.repeat(32);
+
+test('retrying register with the same clientId returns the same account', () => {
+  const { game } = setup();
+  const first = game.register('Anna', CID);
+  const retry = game.register('Anna', CID);
+  assert.equal(retry.token, first.token);
+  assert.equal(retry.farm.id, first.farm.id);
+});
+
+test('register with another clientId, or none, is still "name taken"', () => {
+  const { game } = setup();
+  game.register('Anna', CID);
+  assert.throws(() => game.register('Anna', 'b'.repeat(32)), /name taken/);
+  assert.throws(() => game.register('Anna'), /name taken/);
+});
+
+test('a malformed clientId is rejected', () => {
+  const { game } = setup();
+  assert.throws(() => game.register('Anna', 'short'), /bad clientId/);
+});

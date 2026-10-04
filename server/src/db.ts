@@ -34,5 +34,28 @@ export function openDb(path: string): DatabaseSync {
       PRIMARY KEY (user_id, friend_id)
     );
   `);
+  migrate(db);
   return db;
+}
+
+// Ordered, append-only. PRAGMA user_version records how many have run, so each
+// runs exactly once on any existing database. Never edit a shipped migration.
+const MIGRATIONS: string[] = [
+  // 1: lets a retried /register (lost reply) return the same account instead of "name taken"
+  'ALTER TABLE users ADD COLUMN client_id TEXT',
+];
+
+function migrate(db: DatabaseSync): void {
+  const row = db.prepare('PRAGMA user_version').get() as { user_version: number };
+  for (let v = row.user_version; v < MIGRATIONS.length; v++) {
+    db.exec('BEGIN');
+    try {
+      db.exec(MIGRATIONS[v]);
+      db.exec(`PRAGMA user_version = ${v + 1}`);
+      db.exec('COMMIT');
+    } catch (e) {
+      db.exec('ROLLBACK');
+      throw e;
+    }
+  }
 }

@@ -75,11 +75,14 @@ class ApiClient {
   static Farm _farm(dynamic j) => Farm.fromJson(j as Map<String, dynamic>);
 
   /// Registers a new player and keeps the returned token.
-  Future<Farm> register(String name) async {
+  ///
+  /// [clientId] is a random secret kept for the whole sign-up attempt: if the reply is
+  /// lost and we retry, the server returns the same account instead of "name taken".
+  Future<Farm> register(String name, String clientId) async {
     final (t, farm) = await _call('POST', '/register', (j) {
       j as Map<String, dynamic>;
       return (j['token'] as String, _farm(j['farm']));
-    }, {'name': name});
+    }, {'name': name, 'clientId': clientId});
     token = t; // only keep a token from a fully valid reply
     return farm;
   }

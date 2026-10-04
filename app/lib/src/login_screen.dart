@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'api.dart';
@@ -16,6 +18,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _name = TextEditingController();
+  // One id per screen lifetime, so a retry after a lost reply reuses the account.
+  final _clientId = List.generate(16, (_) => Random.secure().nextInt(256).toRadixString(16).padLeft(2, '0')).join();
   String? _error;
   bool _busy = false;
 
@@ -31,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      final farm = await widget.api.register(_name.text);
+      final farm = await widget.api.register(_name.text, _clientId);
       try {
         await widget.saveToken(widget.api.token!);
       } catch (_) {
