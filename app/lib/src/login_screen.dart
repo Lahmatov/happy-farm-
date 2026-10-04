@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'messages.dart';
+import 'widgets.dart';
 import 'models.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -53,33 +54,73 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('🌾 Счастливая ферма', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _name,
-                    maxLength: 20,
-                    decoration: InputDecoration(labelText: 'Имя фермера', errorText: _error),
-                    onSubmitted: (_) => _busy ? null : _submit(),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: FilledButton(
-                      onPressed: _busy ? null : _submit,
-                      child: _busy ? const CircularProgressIndicator() : const Text('Начать играть'),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFA8DCF5), Color(0xFF8CC63F), Color(0xFF6DAA2C)], stops: [0, 0.45, 1]),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        SpriteThumb('decor_barn', size: 150),
+                        SpriteThumb('decor_tree', size: 110),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Счастливая ферма',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFFFE066),
+                        shadows: [Shadow(color: ink, blurRadius: 0, offset: Offset(2, 2)), Shadow(color: ink, blurRadius: 0, offset: Offset(-2, 2)), Shadow(color: ink, blurRadius: 0, offset: Offset(2, -2)), Shadow(color: ink, blurRadius: 0, offset: Offset(-2, -2))],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3CC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: ink, width: 3),
+                      ),
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _name,
+                            maxLength: 20,
+                            decoration: InputDecoration(labelText: 'Имя фермера', errorText: _error),
+                            onSubmitted: (_) => _busy ? null : _submit(),
+                          ),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: FilledButton(
+                              onPressed: _busy ? null : _submit,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF58B83A),
+                                side: const BorderSide(color: ink, width: 2.5),
+                                textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                              ),
+                              child: _busy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white)) : const Text('Начать играть'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

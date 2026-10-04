@@ -7,6 +7,7 @@ import 'api.dart';
 import 'farm_game.dart';
 import 'messages.dart';
 import 'models.dart';
+import 'sprites.dart';
 import 'toast.dart';
 
 /// A neighbour's farm: tap a ripe plot to steal from it.
@@ -31,6 +32,7 @@ class _FriendFarmScreenState extends State<FriendFarmScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSprites();
     _load();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       final farm = _farm;
@@ -42,6 +44,14 @@ class _FriendFarmScreenState extends State<FriendFarmScreen> {
   void dispose() {
     _ticker?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadSprites() async {
+    try {
+      _game.sprites = await Sprites.load();
+    } catch (_) {
+      // The scene just stays blank; plots are still tappable.
+    }
   }
 
   Future<void> _load() async {
@@ -97,7 +107,7 @@ class _FriendFarmScreenState extends State<FriendFarmScreen> {
               )
             : _farm == null
                 ? const Center(child: CircularProgressIndicator())
-                : GameWidget(game: _game),
+                : ClipRect(child: GameWidget(game: _game)),
       ),
     );
   }

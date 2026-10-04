@@ -196,3 +196,10 @@ double growthProgress(Plot p, int serverNow) {
   if (total <= 0) return 1;
   return ((serverNow - p.plantedAt!) / total).clamp(0.0, 1.0);
 }
+
+/// Progress inside the current level, 0..1. Display only: the server owns XP and levels,
+/// and this mirrors its curve (level L spans 50*(L-1)^2 .. 50*L^2 XP).
+double levelProgress(int xp, int level) {
+  final lo = 50 * (level - 1) * (level - 1), hi = 50 * level * level;
+  return ((xp - lo) / (hi - lo)).clamp(0.0, 1.0);
+}

@@ -1,14 +1,13 @@
 import 'dart:convert';
 
-import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:happy_farm/src/api.dart';
-import 'package:happy_farm/src/farm_game.dart';
 import 'package:happy_farm/src/farm_screen.dart';
 import 'package:happy_farm/src/models.dart';
+import 'helpers.dart';
 
 Map<String, dynamic> plotJson(int i) =>
     {'index': i, 'unlocked': i < 6, 'cropId': null, 'plantedAt': null, 'readyAt': null, 'ready': false, 'stolenShare': 0};
@@ -41,22 +40,15 @@ void main() {
         return http.Response(jsonEncode(farmJson), 200);
       }),
     );
-
-    final gameFinder = find.byWidgetPredicate((w) => w is GameWidget);
     await tester.pumpWidget(MaterialApp(home: FarmScreen(api: api, initial: Farm.fromJson(farmJson))));
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 100));
     expect(gameFinder, findsWidgets);
     expect(find.text('Anna'), findsOneWidget);
-    expect(find.text('200 🪙'), findsOneWidget);
+    expect(find.text('200'), findsOneWidget);
 
     // Plot 0 is the top-left cell, just under the HUD.
-    final topLeft = tester.getTopLeft(gameFinder.first);
-    final gs = tester.getSize(gameFinder.first);
-    final m = gridMetrics(gs.width, gs.height);
-    final cell = m.cell;
-    final left = m.left;
-    await tester.tapAt(topLeft + Offset(left + cell / 2, cell / 2));
+    await tester.tapAt(plotTap(tester, 0));
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100)); // the game loop never settles
     }
@@ -69,7 +61,7 @@ void main() {
     expect(planted, [
       {'plot': 0, 'cropId': 'radish'}
     ]);
-    expect(find.text('190 🪙'), findsOneWidget);
+    expect(find.text('190'), findsOneWidget);
 
     // Stop the periodic ticker before the test ends.
     await tester.pumpWidget(const SizedBox());
@@ -103,12 +95,7 @@ void staleAfterLostReply() {
     for (var i = 0; i < 3; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-    final gameFinder = find.byWidgetPredicate((w) => w is GameWidget);
-    final gs = tester.getSize(gameFinder.first);
-    final m = gridMetrics(gs.width, gs.height);
-    final cell = m.cell;
-    final left = m.left;
-    await tester.tapAt(tester.getTopLeft(gameFinder.first) + Offset(left + cell / 2, cell / 2));
+    await tester.tapAt(plotTap(tester, 0));
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
@@ -117,7 +104,7 @@ void staleAfterLostReply() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(farmGets, 1);
-    expect(find.text('190 🪙'), findsOneWidget);
+    expect(find.text('190'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 }
@@ -135,12 +122,6 @@ void animalTests() {
     for (var i = 0; i < n; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-  }
-
-  Offset animalTap(WidgetTester tester, Finder game, int slot) {
-    final gs = tester.getSize(game.first);
-    final m = gridMetrics(gs.width, gs.height);
-    return tester.getTopLeft(game.first) + Offset(m.left + m.cell * (slot + 0.5), m.cell * 6.5);
   }
 
   const kinds = [
@@ -166,8 +147,7 @@ void animalTests() {
     );
     await tester.pumpWidget(MaterialApp(home: FarmScreen(api: api, initial: Farm.fromJson(farmWith([])))));
     await frames(tester, 3);
-    final game = find.byWidgetPredicate((w) => w is GameWidget);
-    await tester.tapAt(animalTap(tester, game, 0));
+    await tester.tapAt(penTap(tester, 0));
     await frames(tester);
     expect(find.text('Курица'), findsOneWidget);
     expect(find.text('Откроется на уровне 5'), findsOneWidget); // the cow is locked at level 1
@@ -179,7 +159,7 @@ void animalTests() {
     expect(bought, [
       {'slot': 0, 'kind': 'chicken'}
     ]);
-    expect(find.text('100 🪙'), findsOneWidget);
+    expect(find.text('100'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -204,19 +184,18 @@ void animalTests() {
     );
     await tester.pumpWidget(MaterialApp(home: FarmScreen(api: api, initial: Farm.fromJson(farmWith(animals)))));
     await frames(tester, 3);
-    final game = find.byWidgetPredicate((w) => w is GameWidget);
 
-    await tester.tapAt(animalTap(tester, game, 1));
+    await tester.tapAt(penTap(tester, 1));
     await frames(tester);
     expect(collected, isEmpty);
     expect(find.textContaining('Будет готово через'), findsOneWidget);
 
-    await tester.tapAt(animalTap(tester, game, 0));
+    await tester.tapAt(penTap(tester, 0));
     await frames(tester);
     expect(collected, [
       {'slot': 0}
     ]);
-    expect(find.text('240 🪙'), findsOneWidget);
+    expect(find.text('240'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 }

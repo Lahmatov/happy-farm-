@@ -1,16 +1,15 @@
 import 'dart:convert';
 
-import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:happy_farm/src/api.dart';
-import 'package:happy_farm/src/farm_game.dart';
 import 'package:happy_farm/src/friend_farm_screen.dart';
 import 'package:happy_farm/src/friends_screen.dart';
 import 'package:happy_farm/src/messages.dart';
 import 'package:happy_farm/src/models.dart';
+import 'helpers.dart';
 
 Map<String, dynamic> farmJson({bool ripe = false, int coins = 200}) => {
       'id': 2, 'name': 'Boris', 'coins': coins, 'xp': 0, 'level': 1, 'plotUnlockPrice': 500, 'serverTime': 1000,
@@ -110,21 +109,14 @@ void main() {
     ));
     await pumpFrames(tester);
 
-    final game = find.byWidgetPredicate((w) => w is GameWidget);
-    final topLeft = tester.getTopLeft(game.first);
-    final gs = tester.getSize(game.first);
-    final m = gridMetrics(gs.width, gs.height);
-    final cell = m.cell;
-    final left = m.left;
-
     // Plot 1 is empty: no steal request.
-    await tester.tapAt(topLeft + Offset(left + cell * 1.5, cell / 2));
+    await tester.tapAt(plotTap(tester, 1));
     await pumpFrames(tester);
     expect(stolen, isEmpty);
     expect(find.text('Красть можно только созревший урожай'), findsOneWidget);
 
     // Plot 0 is ripe: steal.
-    await tester.tapAt(topLeft + Offset(left + cell / 2, cell / 2));
+    await tester.tapAt(plotTap(tester, 0));
     await pumpFrames(tester);
     expect(stolen, [
       {'plot': 0}
@@ -185,7 +177,7 @@ void resilienceTests() {
     await pumpFrames(tester);
     await tester.tap(find.text('Повторить'));
     await pumpFrames(tester);
-    expect(find.byWidgetPredicate((w) => w is GameWidget), findsOneWidget);
+    expect(gameFinder, findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 }

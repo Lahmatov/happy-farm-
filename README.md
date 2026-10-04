@@ -5,6 +5,10 @@
 - `server/` — сервер (Node 22, без зависимостей, SQLite). Запуск: `cd server && npm start`, тесты: `npm test`.
 - `app/` — клиент на Flutter + Flame (iOS): вход, ферма, посадка, сбор, покупка грядок. Запуск на симуляторе: `cd app && flutter run --dart-define=API_URL=http://localhost:3000` (сервер должен быть запущен). Есть соседи, воровство урожая и животные (курица, овца, корова).
 
+![Сцена фермы](docs/scene.png)
+
+*Скриншот собран тестом `app/test/scene_test.dart` (шрифт в тестах заменён квадратами, на устройстве текст обычный). Вся графика оригинальная и генерируется кодом, см. `tools/sprites/README.md`.*
+
 ## API
 
 `POST /register {name}` → `{token, farm}`; дальше заголовок `Authorization: Bearer <token>`.
