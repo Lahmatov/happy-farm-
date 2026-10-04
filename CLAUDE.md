@@ -1,6 +1,6 @@
 # Happy Farm
 
-iPhone clone of "Счастливая ферма" (VK). `server/`: Node 22 + SQLite, server-authoritative. `app/`: Flutter + Flame client (not created yet).
+iPhone clone of "Счастливая ферма" (VK). `server/`: Node 22 + SQLite, server-authoritative. `app/`: Flutter + Flame client (login, farm, plant/harvest/unlock; friends and stealing come next).
 
 ## Workflow (mandatory)
 
@@ -14,6 +14,7 @@ Limitation: author and reviewer share one GitHub account, and GitHub does not al
 ## Commands
 
 - Server: `cd server && npm start`, tests: `npm test`.
+- Client: `cd app && flutter analyze && flutter test`. Run on a simulator: `flutter run --dart-define=API_URL=http://localhost:3000` (a real device needs the Mac's LAN address and an https or ATS-exempt URL).
 
 ## Skills
 

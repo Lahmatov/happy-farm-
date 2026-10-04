@@ -19,7 +19,7 @@ const int = (v: unknown, name: string): number => {
 export function createApp(game: Game): Server {
   return createServer(async (req, res) => {
     const send = (status: number, body: unknown) => {
-      res.writeHead(status, { 'content-type': 'application/json' });
+      res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify(body));
     };
     try {
