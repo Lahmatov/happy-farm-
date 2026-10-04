@@ -12,6 +12,11 @@ import 'sprites.dart';
 
 final _paint = Paint()..filterQuality = FilterQuality.medium;
 
+// Reused every frame: render() runs ~60 times a second for each component.
+final _fill = Paint();
+final _line = Paint()..style = PaintingStyle.stroke;
+final _cap = Paint()..strokeCap = StrokeCap.round;
+
 void _drawSprite(ui.Canvas canvas, ui.Image image, Rect dst) {
   canvas.drawImageRect(image, Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()), dst, _paint);
 }
@@ -109,17 +114,15 @@ class AnimalComponent extends _IsoTile {
     if (a == null) {
       // An empty pen invites a purchase.
       final c = Offset(anchorX * u, (anchorY - 8) * u);
-      canvas.drawCircle(c, 13 * u, Paint()..color = const Color(0xE6FFFFFF));
-      canvas.drawCircle(c, 13 * u, Paint()
+      canvas.drawCircle(c, 13 * u, _fill..color = const Color(0xE6FFFFFF));
+      canvas.drawCircle(c, 13 * u, _line
         ..color = const Color(0xFF3D2A12)
-        ..style = PaintingStyle.stroke
         ..strokeWidth = 2.2 * u);
-      final p = Paint()
+      _cap
         ..color = const Color(0xFF3D2A12)
-        ..strokeWidth = 3.4 * u
-        ..strokeCap = StrokeCap.round;
-      canvas.drawLine(c.translate(-6 * u, 0), c.translate(6 * u, 0), p);
-      canvas.drawLine(c.translate(0, -6 * u), c.translate(0, 6 * u), p);
+        ..strokeWidth = 3.4 * u;
+      canvas.drawLine(c.translate(-6 * u, 0), c.translate(6 * u, 0), _cap);
+      canvas.drawLine(c.translate(0, -6 * u), c.translate(0, 6 * u), _cap);
       return;
     }
     if (Sprites.animalIds.contains(a.kind)) _drawSprite(canvas, sp['animal_${a.kind}'], canvasRect);
@@ -130,10 +133,10 @@ class AnimalComponent extends _IsoTile {
       final w = 40 * u, h = 5 * u;
       final r = Rect.fromCenter(center: Offset(anchorX * u, (anchorY + tileHalfH + 8) * u), width: w, height: h);
       final rr = RRect.fromRectAndRadius(r, Radius.circular(h));
-      canvas.drawRRect(rr, Paint()..color = const Color(0xAA3D2A12));
+      canvas.drawRRect(rr, _fill..color = const Color(0xAA3D2A12));
       canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(r.left, r.top, w * animalProgress(a, serverNow), h), Radius.circular(h)),
-        Paint()..color = const Color(0xFFFFC21F),
+        _fill..color = const Color(0xFFFFC21F),
       );
     }
   }
@@ -156,24 +159,31 @@ class _Background extends PositionComponent {
   final FarmGame owner;
   _Background(this.owner) : super(priority: -1000);
 
+  // Tuft positions as fractions of the screen: generated once, the same on every launch.
+  static final List<Offset> _tufts = () {
+    final rnd = math.Random(7);
+    return [for (var i = 0; i < 70; i++) Offset(rnd.nextDouble(), rnd.nextDouble())];
+  }();
+
+  final Paint _gradient = Paint();
+  Size? _gradientFor;
+
   @override
   void render(ui.Canvas canvas) {
-    final rect = Rect.fromLTWH(0, 0, owner.size.x, owner.size.y);
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, const [Color(0xFF8CC63F), Color(0xFF6DAA2C)]),
-    );
+    final size = Size(owner.size.x, owner.size.y);
+    final rect = Offset.zero & size;
+    if (_gradientFor != size) {
+      _gradient.shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, const [Color(0xFF8CC63F), Color(0xFF6DAA2C)]);
+      _gradientFor = size;
+    }
+    canvas.drawRect(rect, _gradient);
     final sp = owner.sprites;
     final layout = owner.layout;
     if (sp == null || layout == null) return;
-    // Scattered grass tufts, deterministic so they do not jump around.
-    final rnd = math.Random(7);
     final tuft = sp['decor_tuft'];
-    final s = layout.scale;
-    for (var i = 0; i < 70; i++) {
-      final x = rnd.nextDouble() * rect.width, y = rnd.nextDouble() * rect.height;
-      _drawSprite(canvas, tuft, Rect.fromLTWH(x, y, 18 * s * 1.6, 13 * s * 1.6));
+    final w = 18 * layout.scale * 1.6, h = 13 * layout.scale * 1.6;
+    for (final t in _tufts) {
+      _drawSprite(canvas, tuft, Rect.fromLTWH(t.dx * size.width, t.dy * size.height, w, h));
     }
   }
 }
