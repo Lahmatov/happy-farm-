@@ -9,13 +9,17 @@ import 'friends_screen.dart';
 import 'messages.dart';
 import 'models.dart';
 import 'notifications.dart';
+import 'sprites.dart';
+import 'widgets.dart';
 import 'toast.dart';
 
 class FarmScreen extends StatefulWidget {
   final ApiClient api;
   final Farm initial;
   final ReadyReminder? reminder;
-  const FarmScreen({super.key, required this.api, required this.initial, this.reminder});
+  // Normally loaded here; a screen can be handed ready sprites (tests, screenshots).
+  final Sprites? sprites;
+  const FarmScreen({super.key, required this.api, required this.initial, this.reminder, this.sprites});
 
   @override
   State<FarmScreen> createState() => _FarmScreenState();
@@ -37,6 +41,7 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _apply(_farm);
+    _initSprites();
     widget.api.animalCatalog().then((a) => mounted ? setState(() => _animalKinds = a) : null).catchError(_showError);
     widget.api.catalog().then((c) => mounted ? setState(() => _crops = c) : null).catchError(_showError);
     // Re-evaluate crop stages once a second, not every frame.
@@ -44,6 +49,18 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
       _game.setFarm(_farm, _serverNow);
       if (mounted) setState(() {});
     });
+  }
+
+  void _initSprites() {
+    final ready = widget.sprites;
+    if (ready != null) {
+      _game.sprites = ready;
+      return;
+    }
+    Sprites.load().then((s) {
+      _game.sprites = s;
+      if (mounted) setState(() {});
+    }).catchError(_showError);
   }
 
   @override
@@ -143,12 +160,12 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
             for (final k in _animalKinds)
               ListTile(
                 enabled: k.unlockLevel <= _farm.level && k.price <= _farm.coins,
-                leading: Text(animalEmoji[k.id] ?? '🐾', style: const TextStyle(fontSize: 28)),
+                leading: SpriteThumb('animal_${k.id}'),
                 title: Text(k.name),
                 subtitle: Text(k.unlockLevel > _farm.level
                     ? 'Откроется на уровне ${k.unlockLevel}'
                     : '${k.product} раз в ${_format(k.produceSeconds)} · +${k.value} монет'),
-                trailing: Text('${k.price} 🪙'),
+                trailing: CoinPrice(k.price),
                 onTap: () => Navigator.pop(c, k),
               ),
           ],
@@ -182,12 +199,12 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
             for (final crop in _crops)
               ListTile(
                 enabled: crop.unlockLevel <= _farm.level && crop.seedPrice <= _farm.coins,
-                leading: Text(cropEmoji[crop.id] ?? '🌿', style: const TextStyle(fontSize: 28)),
+                leading: SpriteThumb('crop_${crop.id}_3'),
                 title: Text(crop.name),
                 subtitle: Text(crop.unlockLevel > _farm.level
                     ? 'Откроется на уровне ${crop.unlockLevel}'
                     : 'Растёт ${_format(crop.growSeconds)} · урожай ${crop.yieldCount} × ${crop.sellPrice}'),
-                trailing: Text('${crop.seedPrice} 🪙'),
+                trailing: CoinPrice(crop.seedPrice),
                 onTap: () => Navigator.pop(c, crop),
               ),
           ],
@@ -205,42 +222,14 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF6DAA2C),
       body: SafeArea(
         child: Column(
           children: [
-            _Hud(farm: _farm, onFriends: _openFriends),
-            Expanded(child: GameWidget(game: _game)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Hud extends StatelessWidget {
-  final Farm farm;
-  final VoidCallback onFriends;
-  const _Hud({required this.farm, required this.onFriends});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF33691E),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: DefaultTextStyle(
-        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(farm.name),
-            IconButton(
-              tooltip: 'Соседи',
-              onPressed: onFriends,
-              icon: const Icon(Icons.group, color: Colors.white),
-            ),
-            Text('Ур. ${farm.level}'),
-            Text('${farm.xp} XP'),
-            Text('${farm.coins} 🪙'),
+            Hud(farm: _farm),
+            // Scenery at the edges must not paint over the panels.
+            Expanded(child: ClipRect(child: GameWidget(game: _game))),
+            BottomBar(onFriends: _openFriends),
           ],
         ),
       ),

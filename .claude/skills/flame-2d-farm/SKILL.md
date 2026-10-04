@@ -16,3 +16,11 @@ Flame is the 2D game engine for Flutter (`flame` package on pub.dev). Check the 
 - **Lifecycle:** pause the game when the app goes to background (`WidgetsBindingObserver`) and refresh the farm from the server on resume.
 - **Performance budget:** target 60 fps on an older iPhone. Profile in profile mode on a device, not the simulator, before claiming performance.
 - **Notifications:** schedule a local notification (`flutter_local_notifications`) for the earliest `readyAt`; iOS requires asking the user for permission first.
+
+## This project's scene (verified, not just advice)
+
+- The scene is isometric; geometry lives in `app/lib/src/iso.dart` (`IsoLayout`, `plotCell`, `penCell`) and drawing in `farm_game.dart`. Layers share one 128x128 sprite canvas, so draw them at the same rect.
+- Tap targets are the tile **diamond** (`containsLocalPoint` override), not the canvas rectangle: crops overhang neighbours. Depth order is the ground y (component `priority`).
+- Flame does not clip to the widget: wrap `GameWidget` in `ClipRect` or scenery paints over the HUD.
+- Never use `pumpAndSettle` with a Flame game in tests (the loop never settles); pump fixed durations. Decode images under `tester.runAsync`.
+- To see the result, run `SCREENSHOT_DIR=<dir> flutter test test/scene_test.dart` and open `<dir>/scene.png`.
