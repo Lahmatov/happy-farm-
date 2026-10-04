@@ -55,7 +55,7 @@ void main() {
     final c0 = game.plotCenter(0), c1 = game.plotCenter(1);
     Offset at(double t) => origin + Offset.lerp(c0, c1, t)!;
 
-    for (final (t, expected) in [(0.2, 0), (0.45, 0), (0.5, 1), (0.55, 1), (0.8, 1)]) {
+    for (final (t, expected) in [(0.2, 0), (0.45, 0), (0.47, 1), (0.5, 1), (0.53, 1), (0.55, 1), (0.8, 1)]) {
       taps.clear();
       await tester.tapAt(at(t));
       await tester.pump(const Duration(milliseconds: 50));
