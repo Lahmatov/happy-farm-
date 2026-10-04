@@ -24,13 +24,11 @@ class HarvestResult {
 
 class ApiClient {
   final String baseUrl;
-  final Duration _timeout;
+  final Duration timeout;
   final http.Client _http;
   String? token;
 
-  ApiClient({required this.baseUrl, this.token, http.Client? client, Duration timeout = const Duration(seconds: 15)})
-      : _http = client ?? http.Client(),
-        _timeout = timeout;
+  ApiClient({required this.baseUrl, this.token, http.Client? client, this.timeout = const Duration(seconds: 15)}) : _http = client ?? http.Client();
 
   /// Sends a request and parses the JSON reply with [parse]. Anything unexpected
   /// (non-JSON body, missing or mistyped field) becomes an [ApiException].
@@ -43,8 +41,8 @@ class ApiClient {
     final http.Response res;
     try {
       res = method == 'GET'
-          ? await _http.get(uri, headers: headers).timeout(_timeout)
-          : await _http.post(uri, headers: headers, body: jsonEncode(body ?? {})).timeout(_timeout);
+          ? await _http.get(uri, headers: headers).timeout(timeout)
+          : await _http.post(uri, headers: headers, body: jsonEncode(body ?? {})).timeout(timeout);
     } on http.ClientException {
       throw ApiException(0, 'Нет связи с сервером');
     } on TimeoutException {
