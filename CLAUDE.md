@@ -1,6 +1,6 @@
 # Happy Farm
 
-iPhone clone of "Счастливая ферма" (VK). `server/`: Node 22 + SQLite, server-authoritative. `app/`: Flutter + Flame client (login, farm, plant/harvest/unlock, friends, stealing, animals).
+iPhone clone of "Счастливая ферма" (VK). `server/`: Node 22 + SQLite, server-authoritative. `app/`: Flutter + Flame client (login, farm, plant/harvest/unlock, friends, stealing, animals, ready reminders).
 
 ## Workflow (mandatory)
 
