@@ -8,12 +8,14 @@ import 'farm_game.dart';
 import 'friends_screen.dart';
 import 'messages.dart';
 import 'models.dart';
+import 'notifications.dart';
 import 'toast.dart';
 
 class FarmScreen extends StatefulWidget {
   final ApiClient api;
   final Farm initial;
-  const FarmScreen({super.key, required this.api, required this.initial});
+  final ReadyReminder? reminder;
+  const FarmScreen({super.key, required this.api, required this.initial, this.reminder});
 
   @override
   State<FarmScreen> createState() => _FarmScreenState();
@@ -60,6 +62,7 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
     _farm = farm;
     _clockOffset = farm.serverTime - DateTime.now().millisecondsSinceEpoch ~/ 1000;
     _game.setFarm(farm, farm.serverTime);
+    widget.reminder?.update(farm, farm.serverTime);
     if (mounted) setState(() {});
   }
 

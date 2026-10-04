@@ -5,6 +5,7 @@ import 'src/api.dart';
 import 'src/farm_screen.dart';
 import 'src/login_screen.dart';
 import 'src/models.dart';
+import 'src/notifications.dart';
 
 const _apiUrl = String.fromEnvironment('API_URL', defaultValue: 'http://localhost:3000');
 const _tokenKey = 'token';
@@ -21,6 +22,7 @@ class HappyFarmApp extends StatefulWidget {
 class _HappyFarmAppState extends State<HappyFarmApp> {
   final _storage = const FlutterSecureStorage(); // iOS Keychain
   final _api = ApiClient(baseUrl: _apiUrl);
+  final _reminder = ReadyReminder(LocalNotificationScheduler());
   late Future<Farm?> _start = _restoreSession();
   Farm? _farm;
 
@@ -69,7 +71,7 @@ class _HappyFarmAppState extends State<HappyFarmApp> {
             );
           }
           final farm = _farm ?? snap.data;
-          if (farm != null) return FarmScreen(api: _api, initial: farm);
+          if (farm != null) return FarmScreen(api: _api, initial: farm, reminder: _reminder);
           return LoginScreen(
             api: _api,
             saveToken: (t) => _storage.write(key: _tokenKey, value: t),
