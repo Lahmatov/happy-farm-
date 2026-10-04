@@ -105,7 +105,7 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('Купить грядку?'),
-        content: const Text('Новая грядка стоит 500 монет.'),
+        content: Text('Новая грядка стоит ${_farm.plotUnlockPrice} монет.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Нет')),
           TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Купить')),

@@ -31,7 +31,12 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       final farm = await widget.api.register(_name.text);
-      await widget.saveToken(widget.api.token!);
+      try {
+        await widget.saveToken(widget.api.token!);
+      } catch (_) {
+        // The account exists already; let the player in for this session rather than
+        // stranding them (registering again would fail with "name taken").
+      }
       widget.onLoggedIn(farm);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);

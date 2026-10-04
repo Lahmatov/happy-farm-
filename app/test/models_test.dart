@@ -23,7 +23,7 @@ void main() {
 
   test('farm parses the server payload', () {
     final farm = Farm.fromJson({
-      'id': 1, 'name': 'Anna', 'coins': 190, 'xp': 0, 'level': 1, 'serverTime': 1000,
+      'id': 1, 'name': 'Anna', 'coins': 190, 'xp': 0, 'level': 1, 'plotUnlockPrice': 500, 'serverTime': 1000,
       'plots': [
         {'index': 0, 'unlocked': true, 'cropId': 'radish', 'plantedAt': 1000, 'readyAt': 1060, 'ready': false, 'stolenShare': 0},
         {'index': 1, 'unlocked': false, 'cropId': null, 'plantedAt': null, 'readyAt': null, 'ready': false, 'stolenShare': 0},

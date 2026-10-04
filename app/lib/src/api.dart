@@ -28,7 +28,9 @@ class ApiClient {
 
   ApiClient({required this.baseUrl, this.token, http.Client? client}) : _http = client ?? http.Client();
 
-  Future<Map<String, dynamic>> _call(String method, String path, [Map<String, dynamic>? body]) async {
+  /// Sends a request and parses the JSON reply with [parse]. Anything unexpected
+  /// (non-JSON body, missing or mistyped field) becomes an [ApiException].
+  Future<T> _call<T>(String method, String path, T Function(dynamic json) parse, [Map<String, dynamic>? body]) async {
     final uri = Uri.parse('$baseUrl$path');
     final headers = {
       'content-type': 'application/json',
@@ -42,36 +44,47 @@ class ApiClient {
     } on http.ClientException {
       throw ApiException(0, 'Нет связи с сервером');
     }
-    // Decode bytes as UTF-8 ourselves: `res.body` falls back to latin1 without a charset.
-    final decoded = jsonDecode(utf8.decode(res.bodyBytes));
-    if (res.statusCode >= 400) {
-      throw ApiException(res.statusCode, (decoded is Map ? decoded['error'] : null)?.toString() ?? 'Ошибка ${res.statusCode}');
+    try {
+      // Decode bytes as UTF-8 ourselves: `res.body` falls back to latin1 without a charset.
+      final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+      if (res.statusCode >= 400) {
+        throw ApiException(res.statusCode, (decoded is Map ? decoded['error'] : null)?.toString() ?? 'Ошибка ${res.statusCode}');
+      }
+      return parse(decoded);
+    } on FormatException {
+      throw ApiException(res.statusCode, 'Неожиданный ответ сервера (${res.statusCode})');
+    } on TypeError {
+      throw ApiException(res.statusCode, 'Неожиданный ответ сервера');
     }
-    return decoded is Map<String, dynamic> ? decoded : {'items': decoded};
   }
+
+  static Farm _farm(dynamic j) => Farm.fromJson(j as Map<String, dynamic>);
 
   /// Registers a new player and keeps the returned token.
   Future<Farm> register(String name) async {
-    final j = await _call('POST', '/register', {'name': name});
-    token = j['token'] as String;
-    return Farm.fromJson(j['farm'] as Map<String, dynamic>);
+    final (t, farm) = await _call('POST', '/register', (j) {
+      j as Map<String, dynamic>;
+      return (j['token'] as String, _farm(j['farm']));
+    }, {'name': name});
+    token = t; // only keep a token from a fully valid reply
+    return farm;
   }
 
   Future<List<Crop>> catalog() async {
-    final j = await _call('GET', '/catalog');
-    return (j['items'] as List).map((c) => Crop.fromJson(c as Map<String, dynamic>)).toList();
+    return _call('GET', '/catalog', (j) => (j as List).map((c) => Crop.fromJson(c as Map<String, dynamic>)).toList());
   }
 
-  Future<Farm> farm() async => Farm.fromJson(await _call('GET', '/farm'));
+  Future<Farm> farm() => _call('GET', '/farm', _farm);
 
-  Future<Farm> plant(int plot, String cropId) async =>
-      Farm.fromJson(await _call('POST', '/plant', {'plot': plot, 'cropId': cropId}));
+  Future<Farm> plant(int plot, String cropId) =>
+      _call('POST', '/plant', _farm, {'plot': plot, 'cropId': cropId});
 
   Future<HarvestResult> harvest(int plot) async {
-    final j = await _call('POST', '/harvest', {'plot': plot});
-    return HarvestResult(j['earned'] as int, j['xp'] as int, j['levelUp'] as bool,
-        Farm.fromJson(j['farm'] as Map<String, dynamic>));
+    return _call('POST', '/harvest', (j) {
+      j as Map<String, dynamic>;
+      return HarvestResult(j['earned'] as int, j['xp'] as int, j['levelUp'] as bool, _farm(j['farm']));
+    }, {'plot': plot});
   }
 
-  Future<Farm> unlockPlot() async => Farm.fromJson(await _call('POST', '/unlock-plot'));
+  Future<Farm> unlockPlot() => _call('POST', '/unlock-plot', _farm);
 }
