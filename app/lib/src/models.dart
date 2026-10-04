@@ -98,7 +98,9 @@ enum PlotStage { locked, empty, growing, ripe }
 PlotStage stageOf(Plot p, int serverNow) {
   if (!p.unlocked) return PlotStage.locked;
   if (p.cropId == null) return PlotStage.empty;
-  return serverNow >= p.readyAt! ? PlotStage.ripe : PlotStage.growing;
+  final readyAt = p.readyAt;
+  if (readyAt == null) return PlotStage.growing; // malformed payload: do not crash the render loop
+  return serverNow >= readyAt ? PlotStage.ripe : PlotStage.growing;
 }
 
 /// 0..1 growth progress, 1 when ripe.

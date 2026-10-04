@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -45,9 +46,24 @@ void main() {
 }
 
 void errorCases() {
+  test('an HTML 401 (captive portal) is NOT reported as a rejected token', () async {
+    final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) async => http.Response('<html>Login</html>', 401)));
+    expect(api.farm(), throwsA(isA<ApiException>().having((e) => e.status, 'status', 0)));
+  });
+
+  test('a real JSON 401 keeps status 401', () async {
+    final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) async => http.Response(jsonEncode({'error': 'unauthorized'}), 401)));
+    expect(api.farm(), throwsA(isA<ApiException>().having((e) => e.status, 'status', 401)));
+  });
+
+  test('a hanging request times out as status 0', () async {
+    final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) => Completer<http.Response>().future), timeout: const Duration(milliseconds: 50));
+    expect(api.farm(), throwsA(isA<ApiException>().having((e) => e.status, 'status', 0)));
+  });
+
   test('a non-JSON reply (e.g. an HTML 502) becomes ApiException', () async {
     final api = ApiClient(baseUrl: 'http://x', client: MockClient((_) async => http.Response('<html>Bad Gateway</html>', 502)));
-    expect(api.farm(), throwsA(isA<ApiException>().having((e) => e.status, 'status', 502)));
+    expect(api.farm(), throwsA(isA<ApiException>().having((e) => e.status, 'status', 0)));
   });
 
   test('a reply with a missing field becomes ApiException, not a crash', () async {
