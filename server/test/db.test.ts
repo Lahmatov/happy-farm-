@@ -19,8 +19,9 @@ test('migrations upgrade a database created before client_id existed, and run on
     const db = openDb(path);
     const cols = (db.prepare('PRAGMA table_info(users)').all() as { name: string }[]).map((c) => c.name);
     assert.ok(cols.includes('client_id'));
+    assert.ok(db.prepare('SELECT 1 FROM animals').all() !== undefined);
     assert.equal((db.prepare('SELECT coins FROM users').get() as { coins: number }).coins, 5);
-    assert.equal((db.prepare('PRAGMA user_version').get() as { user_version: number }).user_version, 1);
+    assert.equal((db.prepare('PRAGMA user_version').get() as { user_version: number }).user_version, 2);
     db.close();
   }
 });

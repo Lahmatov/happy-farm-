@@ -1,7 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { randomBytes } from 'node:crypto';
 import {
-  CROP_BY_ID, CROPS, PLOT_UNLOCK_PRICE, START_COINS, START_PLOTS, STEAL_MAX_SHARE,
+  ANIMAL_BY_ID, ANIMAL_SLOTS, ANIMALS, CROP_BY_ID, CROPS, PLOT_UNLOCK_PRICE, START_COINS, START_PLOTS, STEAL_MAX_SHARE,
   STEAL_SLICE, TOTAL_PLOTS, levelForXp,
 } from './catalog.ts';
 
@@ -87,7 +87,51 @@ export class Game {
       }));
     return {
       id: u.id, name: u.name, coins: u.coins, xp: u.xp, level: levelForXp(u.xp), plots,
+      animals: this.animals(userId), animalSlots: ANIMAL_SLOTS,
       plotUnlockPrice: PLOT_UNLOCK_PRICE, serverTime: this.now(),
+    };
+  }
+
+  private animals(userId: number) {
+    const rows = this.db.prepare('SELECT slot, kind, last_collected_at FROM animals WHERE user_id = ? ORDER BY slot')
+      .all(userId) as { slot: number; kind: string; last_collected_at: number }[];
+    return rows.map((r) => {
+      const readyAt = r.last_collected_at + ANIMAL_BY_ID.get(r.kind)!.produceSeconds;
+      return { slot: r.slot, kind: r.kind, lastCollectedAt: r.last_collected_at, readyAt, ready: this.now() >= readyAt };
+    });
+  }
+
+  animalCatalog() {
+    return ANIMALS;
+  }
+
+  buyAnimal(userId: number, slot: number, kindId: string) {
+    const u = this.user(userId);
+    const kind = ANIMAL_BY_ID.get(kindId);
+    if (!kind) throw new GameError(400, 'unknown animal');
+    if (slot < 0 || slot >= ANIMAL_SLOTS) throw new GameError(400, 'bad slot');
+    if (levelForXp(u.xp) < kind.unlockLevel) throw new GameError(403, 'level too low');
+    if (this.db.prepare('SELECT 1 FROM animals WHERE user_id = ? AND slot = ?').get(userId, slot)) {
+      throw new GameError(409, 'slot busy');
+    }
+    if (u.coins < kind.price) throw new GameError(402, 'not enough coins');
+    this.db.prepare('UPDATE users SET coins = coins - ? WHERE id = ?').run(kind.price, userId);
+    this.db.prepare('INSERT INTO animals VALUES (?, ?, ?, ?)').run(userId, slot, kindId, this.now());
+    return this.farm(userId);
+  }
+
+  collectAnimal(userId: number, slot: number) {
+    const u = this.user(userId);
+    const row = this.db.prepare('SELECT kind, last_collected_at FROM animals WHERE user_id = ? AND slot = ?')
+      .get(userId, slot) as { kind: string; last_collected_at: number } | undefined;
+    if (!row) throw new GameError(409, 'no animal here');
+    const kind = ANIMAL_BY_ID.get(row.kind)!;
+    if (this.now() < row.last_collected_at + kind.produceSeconds) throw new GameError(409, 'not ready');
+    this.db.prepare('UPDATE users SET coins = coins + ?, xp = xp + ? WHERE id = ?').run(kind.value, kind.xp, userId);
+    this.db.prepare('UPDATE animals SET last_collected_at = ? WHERE user_id = ? AND slot = ?').run(this.now(), userId, slot);
+    return {
+      earned: kind.value, xp: kind.xp, farm: this.farm(userId),
+      levelUp: levelForXp(u.xp + kind.xp) > levelForXp(u.xp),
     };
   }
 

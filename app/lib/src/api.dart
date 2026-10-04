@@ -118,4 +118,14 @@ class ApiClient {
         j as Map<String, dynamic>;
         return StealResult(j['amount'] as int, j['earned'] as int, j['xp'] as int, _farm(j['farm']));
       }, {'plot': plot});
+
+  Future<List<AnimalKind>> animalCatalog() => _call(
+      'GET', '/animal-catalog', (j) => (j as List).map((a) => AnimalKind.fromJson(a as Map<String, dynamic>)).toList());
+
+  Future<Farm> buyAnimal(int slot, String kind) => _call('POST', '/animals/buy', _farm, {'slot': slot, 'kind': kind});
+
+  Future<HarvestResult> collectAnimal(int slot) => _call('POST', '/animals/collect', (j) {
+        j as Map<String, dynamic>;
+        return HarvestResult(j['earned'] as int, j['xp'] as int, j['levelUp'] as bool, _farm(j['farm']));
+      }, {'slot': slot});
 }

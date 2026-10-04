@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:happy_farm/src/api.dart';
+import 'package:happy_farm/src/farm_game.dart';
 import 'package:happy_farm/src/friend_farm_screen.dart';
 import 'package:happy_farm/src/friends_screen.dart';
 import 'package:happy_farm/src/messages.dart';
@@ -111,16 +112,19 @@ void main() {
 
     final game = find.byWidgetPredicate((w) => w is GameWidget);
     final topLeft = tester.getTopLeft(game.first);
-    final cell = tester.getSize(game.first).width / 4;
+    final gs = tester.getSize(game.first);
+    final m = gridMetrics(gs.width, gs.height);
+    final cell = m.cell;
+    final left = m.left;
 
     // Plot 1 is empty: no steal request.
-    await tester.tapAt(topLeft + Offset(cell * 1.5, cell / 2));
+    await tester.tapAt(topLeft + Offset(left + cell * 1.5, cell / 2));
     await pumpFrames(tester);
     expect(stolen, isEmpty);
     expect(find.text('Красть можно только созревший урожай'), findsOneWidget);
 
     // Plot 0 is ripe: steal.
-    await tester.tapAt(topLeft + Offset(cell / 2, cell / 2));
+    await tester.tapAt(topLeft + Offset(left + cell / 2, cell / 2));
     await pumpFrames(tester);
     expect(stolen, [
       {'plot': 0}

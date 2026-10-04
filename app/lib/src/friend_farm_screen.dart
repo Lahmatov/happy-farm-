@@ -7,6 +7,7 @@ import 'api.dart';
 import 'farm_game.dart';
 import 'messages.dart';
 import 'models.dart';
+import 'toast.dart';
 
 /// A neighbour's farm: tap a ripe plot to steal from it.
 class FriendFarmScreen extends StatefulWidget {
@@ -59,10 +60,7 @@ class _FriendFarmScreenState extends State<FriendFarmScreen> {
   }
 
   void _toast(String text) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 2)));
+    if (mounted) showToast(context, text);
   }
 
   Future<void> _onPlotTap(int index) async {
