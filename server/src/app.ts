@@ -30,6 +30,9 @@ export function createApp(game: Game): Server {
 
       if (route === 'POST /register') return send(201, game.register(String(body.name ?? ''), body.clientId === undefined ? undefined : String(body.clientId)));
       if (route === 'GET /catalog') return send(200, game.catalog());
+      if (route === 'GET /animal-catalog') return send(200, game.animalCatalog());
+      if (route === 'POST /animals/buy') return send(200, game.buyAnimal(auth(), int(body.slot, 'slot'), String(body.kind)));
+      if (route === 'POST /animals/collect') return send(200, game.collectAnimal(auth(), int(body.slot, 'slot')));
       if (route === 'GET /farm') return send(200, game.farm(auth()));
       if (route === 'POST /plant') return send(200, game.plant(auth(), int(body.plot, 'plot'), String(body.cropId)));
       if (route === 'POST /harvest') return send(200, game.harvest(auth(), int(body.plot, 'plot')));

@@ -37,3 +37,25 @@ export function levelForXp(xp: number): number {
   while (xp >= xpForLevel(level)) level++;
   return level;
 }
+
+export interface AnimalKind {
+  id: string;
+  name: string;
+  price: number;
+  produceSeconds: number;
+  product: string;
+  // Coins paid when the product is collected.
+  value: number;
+  xp: number;
+  unlockLevel: number;
+}
+
+// Payback is about 3 collections for every animal, so none dominates.
+export const ANIMALS: AnimalKind[] = [
+  { id: 'chicken', name: 'Курица', price: 100, produceSeconds: 600, product: 'Яйца', value: 40, xp: 8, unlockLevel: 1 },
+  { id: 'sheep', name: 'Овца', price: 400, produceSeconds: 1800, product: 'Шерсть', value: 140, xp: 25, unlockLevel: 3 },
+  { id: 'cow', name: 'Корова', price: 900, produceSeconds: 3600, product: 'Молоко', value: 300, xp: 50, unlockLevel: 5 },
+];
+
+export const ANIMAL_BY_ID = new Map(ANIMALS.map((a) => [a.id, a]));
+export const ANIMAL_SLOTS = 4;

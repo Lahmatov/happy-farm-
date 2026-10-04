@@ -43,6 +43,14 @@ export function openDb(path: string): DatabaseSync {
 const MIGRATIONS: string[] = [
   // 1: lets a retried /register (lost reply) return the same account instead of "name taken"
   'ALTER TABLE users ADD COLUMN client_id TEXT',
+  // 2: animals. A row exists only once the animal is bought.
+  `CREATE TABLE animals (
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    slot INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    last_collected_at INTEGER NOT NULL,
+    PRIMARY KEY (user_id, slot)
+  )`,
 ];
 
 function migrate(db: DatabaseSync): void {

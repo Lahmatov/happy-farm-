@@ -15,6 +15,17 @@ const cropEmoji = {
 };
 
 const _columns = 4;
+const _plotRows = 6;
+const _rows = _plotRows + 1; // plots, then one row of animal pens
+
+const animalEmoji = {'chicken': '🐔', 'sheep': '🐑', 'cow': '🐄'};
+const productEmoji = {'chicken': '🥚', 'sheep': '🧶', 'cow': '🥛'};
+
+/// Square cell size and left margin so the whole grid fits both width and height.
+({double cell, double left}) gridMetrics(double width, double height) {
+  final cell = (width / _columns) < (height / _rows) ? width / _columns : height / _rows;
+  return (cell: cell, left: (width - cell * _columns) / 2);
+}
 
 class PlotComponent extends PositionComponent with TapCallbacks {
   final void Function(int index) onTap;
@@ -66,11 +77,55 @@ class PlotComponent extends PositionComponent with TapCallbacks {
   }
 }
 
+class AnimalComponent extends PositionComponent with TapCallbacks {
+  final void Function(int slot)? onTap;
+  final int slot;
+  Animal? animal;
+  int serverNow = 0;
+
+  AnimalComponent(this.slot, this.onTap);
+
+  @override
+  void onTapDown(TapDownEvent event) => onTap?.call(slot);
+
+  @override
+  void render(Canvas canvas) {
+    final stage = animalStageOf(animal, serverNow);
+    final rect = Rect.fromLTWH(3, 3, size.x - 6, size.y - 6);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(10));
+    canvas.drawRRect(rrect, Paint()..color = const Color(0xFFD7B27A));
+    canvas.drawRRect(rrect, Paint()
+      ..color = const Color(0xFF8D6E3F)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3);
+    final glyph = animal == null ? '＋' : (animalEmoji[animal!.kind] ?? '🐾');
+    _paintText(canvas, glyph, size.x * 0.5, Offset(size.x / 2, size.y / 2));
+    if (stage == AnimalStage.ready) {
+      _paintText(canvas, productEmoji[animal!.kind] ?? '⭐', size.x * 0.28, Offset(size.x * 0.76, size.y * 0.22));
+    } else if (stage == AnimalStage.producing) {
+      final bar = Rect.fromLTWH(rect.left + 8, rect.bottom - 10, rect.width - 16, 5);
+      canvas.drawRect(bar, Paint()..color = const Color(0x55000000));
+      canvas.drawRect(Rect.fromLTWH(bar.left, bar.top, bar.width * animalProgress(animal!, serverNow), bar.height),
+          Paint()..color = const Color(0xFFFFB300));
+    }
+  }
+}
+
+void _paintText(Canvas canvas, String text, double fontSize, Offset center) {
+  final tp = TextPainter(
+    text: TextSpan(text: text, style: TextStyle(fontSize: fontSize)),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
+}
+
 class FarmGame extends FlameGame {
+  final void Function(int slot)? onAnimalTap;
+  final Map<int, AnimalComponent> _animals = {};
   final void Function(int index) onPlotTap;
   final Map<int, PlotComponent> _components = {};
 
-  FarmGame({required this.onPlotTap});
+  FarmGame({required this.onPlotTap, this.onAnimalTap});
 
   @override
   Color backgroundColor() => const Color(0xFF7CB342);
@@ -91,17 +146,36 @@ class FarmGame extends FlameGame {
           ..serverNow = serverNow;
       }
     }
+    for (var slot = 0; slot < farm.animalSlots; slot++) {
+      var c = _animals[slot];
+      if (c == null) {
+        c = AnimalComponent(slot, onAnimalTap);
+        _animals[slot] = c;
+        add(c);
+        if (hasLayout) _layoutAnimal(c);
+      }
+      c
+        ..animal = animalAt(farm, slot)
+        ..serverNow = serverNow;
+    }
   }
 
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     _components.values.forEach(_layout);
+    _animals.values.forEach(_layoutAnimal);
   }
 
   void _layout(PlotComponent c) {
-    final cell = size.x / _columns;
-    c.size = Vector2.all(cell);
-    c.position = Vector2((c.plot.index % _columns) * cell, (c.plot.index ~/ _columns) * cell);
+    final m = gridMetrics(size.x, size.y);
+    c.size = Vector2.all(m.cell);
+    c.position = Vector2(m.left + (c.plot.index % _columns) * m.cell, (c.plot.index ~/ _columns) * m.cell);
+  }
+
+  void _layoutAnimal(AnimalComponent c) {
+    final m = gridMetrics(size.x, size.y);
+    c.size = Vector2.all(m.cell);
+    c.position = Vector2(m.left + (c.slot % _columns) * m.cell, (_plotRows + c.slot ~/ _columns) * m.cell);
   }
 }

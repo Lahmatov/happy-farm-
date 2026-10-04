@@ -5,6 +5,23 @@ Plot plot({bool unlocked = true, String? crop, int? planted, int? ready}) =>
     Plot(index: 0, unlocked: unlocked, cropId: crop, plantedAt: planted, readyAt: ready);
 
 void main() {
+  test('animal stage follows the server clock', () {
+    const a = Animal(slot: 0, kind: 'chicken', lastCollectedAt: 100, readyAt: 700);
+    expect(animalStageOf(null, 0), AnimalStage.empty);
+    expect(animalStageOf(a, 699), AnimalStage.producing);
+    expect(animalStageOf(a, 700), AnimalStage.ready);
+    expect(animalProgress(a, 400), 0.5);
+    expect(animalProgress(a, 5000), 1);
+  });
+
+  test('farm without animals (older server) still parses', () {
+    final farm = Farm.fromJson({
+      'id': 1, 'name': 'A', 'coins': 1, 'xp': 0, 'level': 1, 'plotUnlockPrice': 500, 'serverTime': 1, 'plots': [],
+    });
+    expect(farm.animals, isEmpty);
+    expect(farm.animalSlots, 4);
+  });
+
   test('stage follows the server clock', () {
     expect(stageOf(plot(unlocked: false), 0), PlotStage.locked);
     expect(stageOf(plot(), 0), PlotStage.empty);

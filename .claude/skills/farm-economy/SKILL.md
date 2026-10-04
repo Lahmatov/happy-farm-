@@ -13,4 +13,5 @@ Source of truth: `server/src/catalog.ts`. Rules mirror the classic Happy Farm lo
 - **Stealing:** capped total share (50%) and one theft per thief per plot, so owners always keep most of the crop. Changing the numbers needs a test for the cap.
 - **Level curve:** `xpForLevel(l) = 50 * l^2`. Check that unlock levels are reachable at the expected play time.
 - **Changing a number:** update the test that encodes the old value, and state the before/after profit per hour in the PR description.
+- **Animals** (`ANIMALS` in the same file): 4 pens, a product every `produceSeconds` that pays `value` coins on collect; the timer restarts on collect and does not accumulate. Each animal should pay back its price in 2-4 collections (a test enforces it). Animal products are not stealable.
 - **No real-money surfaces** are added without an explicit decision from the owner.

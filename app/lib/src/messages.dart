@@ -17,6 +17,10 @@ const _ru = {
   'bad plot': 'Нет такой грядки',
   'unknown crop': 'Неизвестная культура',
   'all plots unlocked': 'Все грядки уже куплены',
+  'unknown animal': 'Неизвестное животное',
+  'bad slot': 'Нет такого загона',
+  'slot busy': 'Загон занят',
+  'no animal here': 'Здесь нет животного',
   'name taken': 'Это имя уже занято',
   'name must be 2-20 chars': 'Имя: от 2 до 20 символов',
 };

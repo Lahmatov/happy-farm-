@@ -8,6 +8,7 @@ import 'farm_game.dart';
 import 'friends_screen.dart';
 import 'messages.dart';
 import 'models.dart';
+import 'toast.dart';
 
 class FarmScreen extends StatefulWidget {
   final ApiClient api;
@@ -21,7 +22,8 @@ class FarmScreen extends StatefulWidget {
 class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
   late Farm _farm = widget.initial;
   List<Crop> _crops = const [];
-  late final FarmGame _game = FarmGame(onPlotTap: _onPlotTap);
+  List<AnimalKind> _animalKinds = const [];
+  late final FarmGame _game = FarmGame(onPlotTap: _onPlotTap, onAnimalTap: _onAnimalTap);
   Timer? _ticker;
   // serverTime - local time at the moment the farm was received.
   late int _clockOffset;
@@ -33,6 +35,7 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _apply(_farm);
+    widget.api.animalCatalog().then((a) => mounted ? setState(() => _animalKinds = a) : null).catchError(_showError);
     widget.api.catalog().then((c) => mounted ? setState(() => _crops = c) : null).catchError(_showError);
     // Re-evaluate crop stages once a second, not every frame.
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -70,14 +73,11 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
 
   void _showError(Object e) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e is ApiException ? localize(e.message) : e.toString())));
+    showToast(context, e is ApiException ? localize(e.message) : e.toString());
   }
 
   void _toast(String text) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 2)));
+    if (mounted) showToast(context, text);
   }
 
   Future<void> _onPlotTap(int index) async {
@@ -108,6 +108,50 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
   Future<void> _openFriends() async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => FriendsScreen(api: widget.api)));
     _refresh(); // stealing from a neighbour changed our coins and XP
+  }
+
+  Future<void> _onAnimalTap(int slot) async {
+    final animal = animalAt(_farm, slot);
+    try {
+      switch (animalStageOf(animal, _serverNow)) {
+        case AnimalStage.empty:
+          final kind = await _pickAnimal();
+          if (kind != null) _apply(await widget.api.buyAnimal(slot, kind.id));
+        case AnimalStage.producing:
+          _toast('Будет готово через ${_format(animal!.readyAt - _serverNow)}');
+        case AnimalStage.ready:
+          final r = await widget.api.collectAnimal(slot);
+          _apply(r.farm);
+          _toast('+${r.earned} монет, +${r.xp} опыта${r.levelUp ? ' — новый уровень!' : ''}');
+      }
+    } on ApiException catch (e) {
+      _showError(e);
+      if (e.status == 0) await _refresh(quiet: true);
+    }
+  }
+
+  Future<AnimalKind?> _pickAnimal() {
+    return showModalBottomSheet<AnimalKind>(
+      context: context,
+      builder: (c) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (final k in _animalKinds)
+              ListTile(
+                enabled: k.unlockLevel <= _farm.level && k.price <= _farm.coins,
+                leading: Text(animalEmoji[k.id] ?? '🐾', style: const TextStyle(fontSize: 28)),
+                title: Text(k.name),
+                subtitle: Text(k.unlockLevel > _farm.level
+                    ? 'Откроется на уровне ${k.unlockLevel}'
+                    : '${k.product} раз в ${_format(k.produceSeconds)} · +${k.value} монет'),
+                trailing: Text('${k.price} 🪙'),
+                onTap: () => Navigator.pop(c, k),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _offerUnlock(int index) async {
