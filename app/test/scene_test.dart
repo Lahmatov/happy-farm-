@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:happy_farm/src/api.dart';
+import 'package:happy_farm/src/farm_game.dart';
 import 'package:happy_farm/src/farm_screen.dart';
 import 'package:happy_farm/src/iso.dart';
 import 'package:happy_farm/src/models.dart';
@@ -37,6 +39,31 @@ Map<String, dynamic> richFarm() => {
     };
 
 void main() {
+  testWidgets('taps near the shared edge of two tiles go to the front tile, away from it to the right one', (tester) async {
+    final taps = <int>[];
+    final game = FarmGame(onPlotTap: taps.add);
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr, child: SizedBox(width: 390, height: 640, child: GameWidget(game: game))));
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    game.setFarm(Farm.fromJson(richFarm()), 1000);
+    for (var i = 0; i < 3; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    final origin = tester.getTopLeft(find.byType(GameWidget<FarmGame>));
+    // Plots 0 and 1 are neighbours along the first row; plot 1 is nearer to the viewer.
+    final c0 = game.plotCenter(0), c1 = game.plotCenter(1);
+    Offset at(double t) => origin + Offset.lerp(c0, c1, t)!;
+
+    for (final (t, expected) in [(0.2, 0), (0.45, 0), (0.5, 1), (0.55, 1), (0.8, 1)]) {
+      taps.clear();
+      await tester.tapAt(at(t));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(taps, [expected], reason: 'tap at t=$t between plot 0 and plot 1');
+    }
+    await tester.pumpWidget(const SizedBox());
+  });
+
   test('layout: the whole scene fits any phone, tiles keep a usable size, nothing overlaps', () {
     for (final size in const [Size(375, 520), Size(393, 640), Size(430, 740)]) {
       final l = IsoLayout.fit(size.width, size.height);
