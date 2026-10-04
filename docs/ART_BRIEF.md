@@ -159,18 +159,21 @@ side faces below; edges must be straight so neighbouring tiles join with no gaps
 - `_2` — почти взрослое, плодов ещё нет или они зелёные/маленькие.
 - `_3` — **спелое, готово к сбору**: плоды самые крупные, яркие, глянцевые. Должно сразу бросаться в глаза.
 
-Расположение (проверено по `tools/sprites/art.mjs`, в логических единицах холста 128x128):
+Расположение (пересчитано по `tools/sprites/art.mjs`, в логических единицах холста 128x128; основание
+каждого растения, то есть точка на земле):
 
-- Обычные культуры: **5 мест посадки** — центр **(64, 88)** и четыре точки **(64 ± 17, 88 ± 8)**, то есть
-  прямоугольник вокруг центра. Это примерно на полпути от центра к серединам рёбер ромба, а не к углам.
+- Обычные культуры: **5 мест посадки**: центр **(64, 90)** и четыре точки
+  **(81,3; 81,4), (46,7; 81,4), (81,3; 98,6), (46,7; 98,6)**. Это прямоугольник вокруг центра
+  (±17,3 по x и ±8,6 по y), примерно на полпути от центра к серединам рёбер ромба, а не к углам.
   Растения за счёт размера заходят дальше, но их основания стоят именно здесь.
-- Кукуруза: **3 места**, потому что стебли высокие. Основания примерно в точках (69, 78), (79, 95) и (42, 86).
+- Кукуруза: **3 места**, потому что стебли высокие. Основания в точках (69,1; 79,8), (79,4; 97,7) и
+  (41,0; 87,4).
 - Растения не должны сильно выходить за левый и правый углы ромба (x = 2 и x = 126); вверх могут
   подниматься высоко. Передние растения (ниже на экране) перекрывают задние.
 
 Строка Geometry для культур:
 `Geometry: ONLY the plants, no soil, no tile, no ground. Five plant bases: one at the centre of an
-isometric diamond (50% x, 68.75% y of a square canvas) and four around it at about +-13% x and +-6.5% y
+isometric diamond (50% x, 68.75% y of a square canvas) and four around it at about +-13.5% x and +-6.75% y
 of the canvas from the centre (a small rectangle, not near the diamond corners). Corn: three plant bases
 spread across the tile. Plants may rise up to the top edge and must stay within the diamond's left and
 right corners (96.9% of canvas width); transparent background so the plants can be layered over a soil tile.`
@@ -194,8 +197,8 @@ right corners (96.9% of canvas width); transparent background so the plants can 
 
 Строка Geometry для животных:
 `Geometry: ONLY the animal, no pen, no straw, no ground; standing on an isometric diamond centred at
-50% x and 68.75% y of a square canvas; feet around 75% of canvas height; the animal is about 50-65% of
-canvas width (hen smallest, cow largest); transparent background.`
+50% x and 68.75% y of a square canvas; feet around 75% of canvas height; the animal is about 55-67% of
+canvas width including its outline (hen smallest, cow largest); transparent background.`
 
 Животные в одном масштабе друг относительно друга: корова самая крупная, курица самая мелкая, овца между ними.
 
