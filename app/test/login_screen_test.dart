@@ -44,6 +44,6 @@ void main() {
     await tester.tap(find.byType(FilledButton));
     await tester.pump();
     await tester.pump();
-    expect(find.text('name taken'), findsOneWidget);
+    expect(find.text('Это имя уже занято'), findsOneWidget);
   });
 }

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'farm_game.dart';
+import 'friends_screen.dart';
+import 'messages.dart';
 import 'models.dart';
 
 class FarmScreen extends StatefulWidget {
@@ -68,7 +70,7 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
 
   void _showError(Object e) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e is ApiException ? localize(e.message) : e.toString())));
   }
 
   void _toast(String text) {
@@ -98,6 +100,11 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
     } on ApiException catch (e) {
       _showError(e);
     }
+  }
+
+  Future<void> _openFriends() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => FriendsScreen(api: widget.api)));
+    _refresh(); // stealing from a neighbour changed our coins and XP
   }
 
   Future<void> _offerUnlock(int index) async {
@@ -151,7 +158,7 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
       body: SafeArea(
         child: Column(
           children: [
-            _Hud(farm: _farm),
+            _Hud(farm: _farm, onFriends: _openFriends),
             Expanded(child: GameWidget(game: _game)),
           ],
         ),
@@ -162,7 +169,8 @@ class _FarmScreenState extends State<FarmScreen> with WidgetsBindingObserver {
 
 class _Hud extends StatelessWidget {
   final Farm farm;
-  const _Hud({required this.farm});
+  final VoidCallback onFriends;
+  const _Hud({required this.farm, required this.onFriends});
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +183,11 @@ class _Hud extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(farm.name),
+            IconButton(
+              tooltip: 'Соседи',
+              onPressed: onFriends,
+              icon: const Icon(Icons.group, color: Colors.white),
+            ),
             Text('Ур. ${farm.level}'),
             Text('${farm.xp} XP'),
             Text('${farm.coins} 🪙'),

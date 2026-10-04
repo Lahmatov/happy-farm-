@@ -91,6 +91,16 @@ class Farm {
       );
 }
 
+class Friend {
+  final int id;
+  final String name;
+  final int level;
+  const Friend({required this.id, required this.name, required this.level});
+
+  factory Friend.fromJson(Map<String, dynamic> j) =>
+      Friend(id: j['id'] as int, name: j['name'] as String, level: j['level'] as int);
+}
+
 enum PlotStage { locked, empty, growing, ripe }
 
 /// Visual stage of a plot. [serverNow] must be on the server clock, so the
