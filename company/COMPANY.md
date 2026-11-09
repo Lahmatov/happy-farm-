@@ -9,7 +9,7 @@ license: proprietary
 goals:
   - Ship a legally clean, good-looking farm game for iPhone to the App Store (original name and art).
 sources:
-  - kind: github-dir
+  - kind: github-file
     repo: paperclipai/paperclip
     path: docs/companies/companies-spec.md
     commit: 282503b5b39204b13067bf59138ef526ee77539e
@@ -38,7 +38,8 @@ The repository owner is the board. Agents never decide on their own:
 - anything that spends real money (hosting, Apple Developer account, paid tools, lawyers);
 - the game's name, icon and public identity; legal positions; real-money features;
 - releases to TestFlight / App Store and anything publicly reachable;
-- hiring a new agent role or changing this governance;
+- hiring a new agent role, changing this governance, or changing what agents may do
+  (roles, tool lists, skills, permissions, CI workflows);
 - repository settings (branch protection, accounts, secrets).
 
 Those go to the Trello list **"👤 Нужно решение владельца"** (see `GOVERNANCE.md`).

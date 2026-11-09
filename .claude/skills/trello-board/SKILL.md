@@ -37,8 +37,9 @@ Tools: `mcp__Trello__trelloReadCard` (`list_by_list`, `get`), `mcp__Trello__trel
 - Pick up: move to In Progress, comment a short plan.
 - Hand off: move to In Review, comment the PR/doc link, what was verified, what was not.
 - Blocked: move to Blocked, comment the exact blocker (card link or owner decision).
-- Done: only the reviewer after merge (code), or the approver (non-code); comment the merge commit
-  or final document link.
+- Done: `reviewer` after merging the PR, for everything that produces repository files (code and
+  documents); the approver only for work with no repository artifact. Comment the merge commit or
+  the final link.
 - Every run that touches a card leaves a comment on it.
 - Timeouts: a Trello write that times out may still have succeeded. List the target list before
   retrying, so you do not create duplicates.

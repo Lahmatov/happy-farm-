@@ -18,7 +18,8 @@ Priority:
 3. **Todo** cards you own, top first.
 
 Skip **Blocked** unless you can remove the blocker. Never take a card that is not assigned to you
-(only `producer` assigns); if you see unassigned work that matters, comment to `producer` instead.
+and never assign one to yourself (`producer` assigns across the company, a manager within their
+team, the owner assigns `producer`: `GOVERNANCE.md` §1); if you see unassigned work that matters, comment to `producer` instead.
 
 ## 3. Check out and work
 
