@@ -11,6 +11,10 @@
 
 Графика сейчас MVP. Подробное ТЗ с промтами для новой, более «пышной» графики: [docs/ART_BRIEF.md](docs/ART_BRIEF.md).
 
+## Команда ИИ-агентов
+
+Проект ведёт «студия» ИИ-агентов по модели [paperclip](https://github.com/paperclipai/paperclip): у агентов есть роли и подчинённость, задачи живут на доске Trello (Backlog → Todo → In Progress → In Review → Done), у каждой задачи два этапа контроля (ревью и одобрение), а решения о деньгах, названии, релизах и юристах принимает владелец. Подробно: [company/COMPANY.md](company/COMPANY.md), правила: [company/GOVERNANCE.md](company/GOVERNANCE.md).
+
 ## API
 
 `POST /register {name}` → `{token, farm}`; дальше заголовок `Authorization: Bearer <token>`.
