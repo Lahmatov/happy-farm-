@@ -42,7 +42,7 @@ class ReadyReminder {
       if (seconds != null) {
         await scheduler.scheduleIn(
           Duration(seconds: seconds),
-          title: 'Счастливая ферма',
+          title: 'Ферма 2007',
           body: 'Что-то созрело! Заходи на ферму 🌾',
         );
       }

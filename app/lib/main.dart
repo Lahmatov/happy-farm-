@@ -45,7 +45,7 @@ class _HappyFarmAppState extends State<HappyFarmApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Счастливая ферма',
+      title: 'Ферма 2007',
       theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
       home: FutureBuilder<Farm?>(
         future: _start,

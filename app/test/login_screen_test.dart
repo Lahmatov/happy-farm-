@@ -40,6 +40,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: LoginScreen(api: api, saveToken: (_) async {}, onLoggedIn: (_) {}),
     ));
+    expect(find.text('Ферма 2007'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Anna');
     await tester.tap(find.byType(FilledButton));
     await tester.pump();
