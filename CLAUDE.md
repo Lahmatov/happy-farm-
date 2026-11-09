@@ -1,6 +1,6 @@
-# Happy Farm
+# Ферма 2007
 
-iPhone clone of "Счастливая ферма" (VK). `server/`: Node 22 + SQLite, server-authoritative. `app/`: Flutter + Flame client (login, farm, plant/harvest/unlock, friends, stealing, animals, ready reminders, isometric scene with sprites).
+iPhone farm game «Ферма 2007», in the spirit of the classic social-network farm games of the late 2000s. `server/`: Node 22 + SQLite, server-authoritative. `app/`: Flutter + Flame client (login, farm, plant/harvest/unlock, friends, stealing, animals, ready reminders, isometric scene with sprites).
 
 ## How the team works (mandatory)
 
