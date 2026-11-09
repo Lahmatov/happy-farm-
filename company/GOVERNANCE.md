@@ -24,7 +24,9 @@ work it authored could only be reviewed or merged by itself. Changes to review t
 **Assignment.** `producer` assigns work across the company and is the only one who moves cards out
 of Backlog. A manager may assign Todo cards within their own team (for example `cto` to
 `server-engineer`, `client-engineer`, `release-engineer`), following paperclip's delegation down the
-org chart. An agent never assigns work to itself.
+org chart. An agent never assigns work to itself. `producer`'s own cards are assigned by the board:
+an owner request (in chat or on a card) is that assignment, and recurring tasks listed in
+`company/projects/` count as assigned.
 
 Every run leaves a comment on the card (paperclip's "comment required" invariant): what was done,
 what was verified, what was not, links.
@@ -70,10 +72,11 @@ comments. A separate reviewer account and branch protection are a board decision
 - name, icon, store listing, anything public;
 - releases (TestFlight, App Store) and public servers;
 - real-money features and monetisation;
-- new agent roles, and any change to how agents are governed or what they may do:
-  `company/**` (roles, this file, `HEARTBEAT.md`), `.claude/agents/**` (agent tool lists),
-  `.claude/skills/{pr-review,ponytail-review,trello-board}/**` and `CLAUDE.md`. Otherwise an agent
-  could widen its own permissions through an ordinary PR;
+- new agent roles, and any change to how agents are governed or what they may do. That is every
+  file under `company/**` (roles, this file, `HEARTBEAT.md`) and `.claude/**` (agent tool lists,
+  skills, `settings*.json` permissions and hooks, including files that do not exist yet), plus
+  `.mcp.json`, `.github/workflows/**` and `CLAUDE.md`. Otherwise an agent could widen its own
+  permissions or tools through an ordinary PR;
 - repository settings, CI being *required*.
 
 Agents prepare options (with prices, risks, sources) on a card in **"👤 Нужно решение владельца"**

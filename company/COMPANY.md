@@ -38,7 +38,8 @@ The repository owner is the board. Agents never decide on their own:
 - anything that spends real money (hosting, Apple Developer account, paid tools, lawyers);
 - the game's name, icon and public identity; legal positions; real-money features;
 - releases to TestFlight / App Store and anything publicly reachable;
-- hiring a new agent role or changing this governance;
+- hiring a new agent role, changing this governance, or changing what agents may do
+  (roles, tool lists, skills, permissions, CI workflows);
 - repository settings (branch protection, accounts, secrets).
 
 Those go to the Trello list **"👤 Нужно решение владельца"** (see `GOVERNANCE.md`).

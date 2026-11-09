@@ -19,7 +19,7 @@ Priority:
 
 Skip **Blocked** unless you can remove the blocker. Never take a card that is not assigned to you
 and never assign one to yourself (`producer` assigns across the company, a manager within their
-team: `GOVERNANCE.md` §1); if you see unassigned work that matters, comment to `producer` instead.
+team, the owner assigns `producer`: `GOVERNANCE.md` §1); if you see unassigned work that matters, comment to `producer` instead.
 
 ## 3. Check out and work
 
