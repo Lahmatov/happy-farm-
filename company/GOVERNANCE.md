@@ -16,6 +16,16 @@ the Trello board and the PR workflow.
 (e.g. `cto` writes code), approval goes one level up the org chart (`producer`); if the executor is
 `producer`, approval goes to the board (owner).
 
+**`reviewer` never executes tasks.** It is the default reviewer and the only agent that merges, so
+work it authored could only be reviewed or merged by itself. Changes to review tooling (the
+`reviewer` role, `pr-review`, `ponytail-review`) are written by `cto` or `producer`, reviewed by
+`cto` (or `producer` if `cto` wrote them), approved by the board, and merged by `reviewer`.
+
+**Assignment.** `producer` assigns work across the company and is the only one who moves cards out
+of Backlog. A manager may assign Todo cards within their own team (for example `cto` to
+`server-engineer`, `client-engineer`, `release-engineer`), following paperclip's delegation down the
+org chart. An agent never assigns work to itself.
+
 Every run leaves a comment on the card (paperclip's "comment required" invariant): what was done,
 what was verified, what was not, links.
 
@@ -34,7 +44,10 @@ Backlog → Todo → In Progress → In Review → Done
 - **In Review**: work is ready; the card comment links the PR/document and lists what was tested.
 - **Blocked**: cannot move until something specific changes; the comment names the blocker
   (another card or a board decision).
-- **Done**: review passed, approval given, PR merged (or document accepted).
+- **Done**: review passed, approval given, PR merged. Everything that produces repository files
+  (code *and* documents) goes through a PR, so `reviewer` moves it to Done after merging. Only work
+  with no repository artifact (for example a decision recorded on the card) is moved to Done by its
+  approver.
 - Cancelled work is archived with a comment saying why.
 
 ## 3. Code changes: how review and approval map onto PRs
@@ -57,7 +70,11 @@ comments. A separate reviewer account and branch protection are a board decision
 - name, icon, store listing, anything public;
 - releases (TestFlight, App Store) and public servers;
 - real-money features and monetisation;
-- new agent roles, changes to this file, repository settings, CI being *required*.
+- new agent roles, and any change to how agents are governed or what they may do:
+  `company/**` (roles, this file, `HEARTBEAT.md`), `.claude/agents/**` (agent tool lists),
+  `.claude/skills/{pr-review,ponytail-review,trello-board}/**` and `CLAUDE.md`. Otherwise an agent
+  could widen its own permissions through an ordinary PR;
+- repository settings, CI being *required*.
 
 Agents prepare options (with prices, risks, sources) on a card in **"👤 Нужно решение владельца"**
 and wait. Never act on a board-reserved item without the owner's explicit answer.

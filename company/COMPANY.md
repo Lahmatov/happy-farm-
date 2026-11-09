@@ -9,7 +9,7 @@ license: proprietary
 goals:
   - Ship a legally clean, good-looking farm game for iPhone to the App Store (original name and art).
 sources:
-  - kind: github-dir
+  - kind: github-file
     repo: paperclipai/paperclip
     path: docs/companies/companies-spec.md
     commit: 282503b5b39204b13067bf59138ef526ee77539e
