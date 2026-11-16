@@ -59,18 +59,22 @@ class Hud extends StatelessWidget {
                 alignment: const Alignment(0, 0.1),
                 children: [
                   const SpriteThumb('icon_star', size: 40),
-                  Text('${farm.level}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, shadows: [Shadow(color: ink, blurRadius: 3), Shadow(color: ink, blurRadius: 3)])),
+                  Semantics(identifier: 'hud-level', container: true, child: Text('${farm.level}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, shadows: [Shadow(color: ink, blurRadius: 3), Shadow(color: ink, blurRadius: 3)]))),
                 ],
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(farm.name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 17, shadows: [Shadow(color: ink, blurRadius: 3)])),
+                child: Semantics(
+                  identifier: 'hud-name',
+                  container: true,
+                  child: Text(farm.name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 17, shadows: [Shadow(color: ink, blurRadius: 3)])),
+                ),
               ),
               _Pill(
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   const SpriteThumb('icon_coin', size: 22),
                   const SizedBox(width: 6),
-                  Text('${farm.coins}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ink)),
+                  Semantics(identifier: 'hud-coins', container: true, child: Text('${farm.coins}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ink))),
                 ]),
               ),
             ],
@@ -124,17 +128,22 @@ class BottomBar extends StatelessWidget {
         border: Border(top: BorderSide(color: ink, width: 3)),
       ),
       child: Center(
-        child: FilledButton.icon(
-          onPressed: onFriends,
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF58B83A),
-            foregroundColor: Colors.white,
-            minimumSize: const Size(160, 46),
-            side: const BorderSide(color: ink, width: 2.5),
-            textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+        child: MergeSemantics(
+          child: Semantics(
+            identifier: 'open-friends',
+            child: FilledButton.icon(
+              onPressed: onFriends,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF58B83A),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(160, 46),
+                side: const BorderSide(color: ink, width: 2.5),
+                textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+              ),
+              icon: const Icon(Icons.group),
+              label: const Text('Соседи'),
+            ),
           ),
-          icon: const Icon(Icons.group),
-          label: const Text('Соседи'),
         ),
       ),
     );

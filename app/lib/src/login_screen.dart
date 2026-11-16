@@ -96,24 +96,34 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Column(
                         children: [
-                          TextField(
-                            controller: _name,
-                            maxLength: 20,
-                            decoration: InputDecoration(labelText: 'Имя фермера', errorText: _error),
-                            onSubmitted: (_) => _busy ? null : _submit(),
+                          // identifier is what e2e's getByTestId finds (the accessibility identifier on iOS).
+                          Semantics(
+                            identifier: 'login-name',
+                            child: TextField(
+                              controller: _name,
+                              maxLength: 20,
+                              decoration: InputDecoration(labelText: 'Имя фермера', errorText: _error),
+                              onSubmitted: (_) => _busy ? null : _submit(),
+                            ),
                           ),
                           const SizedBox(height: 4),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: FilledButton(
-                              onPressed: _busy ? null : _submit,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF58B83A),
-                                side: const BorderSide(color: ink, width: 2.5),
-                                textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                          // MergeSemantics folds the identifier into the button's own node.
+                          MergeSemantics(
+                            child: Semantics(
+                              identifier: 'login-start',
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: FilledButton(
+                                  onPressed: _busy ? null : _submit,
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: const Color(0xFF58B83A),
+                                    side: const BorderSide(color: ink, width: 2.5),
+                                    textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                                  ),
+                                  child: _busy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white)) : const Text('Начать играть'),
+                                ),
                               ),
-                              child: _busy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white)) : const Text('Начать играть'),
                             ),
                           ),
                         ],

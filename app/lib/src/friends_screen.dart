@@ -59,15 +59,20 @@ class _FriendsScreenState extends State<FriendsScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _name,
-                      maxLength: 20,
-                      decoration: InputDecoration(labelText: 'Имя соседа', errorText: _error, counterText: ''),
-                      onSubmitted: (_) => _add(),
+                    child: Semantics(
+                      identifier: 'friend-name',
+                      child: TextField(
+                        controller: _name,
+                        maxLength: 20,
+                        decoration: InputDecoration(labelText: 'Имя соседа', errorText: _error, counterText: ''),
+                        onSubmitted: (_) => _add(),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  FilledButton(onPressed: _add, child: const Text('Добавить')),
+                  MergeSemantics(
+                    child: Semantics(identifier: 'friend-add', child: FilledButton(onPressed: _add, child: const Text('Добавить'))),
+                  ),
                 ],
               ),
             ),

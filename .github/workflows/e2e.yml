@@ -1,0 +1,112 @@
+name: e2e
+
+# End-to-end tests of the iPhone app on an iOS simulator, with e2e (e2e/ and README,
+# «E2E-тесты»). The runner starts the game server from server/ itself (e2e/e2e.config.ts).
+#
+# Deterministic tests always run. The agent tests (e2e/tests/*.agent.e2e.ts) run on
+# Claude Code and need the CLAUDE_CODE_OAUTH_TOKEN repository secret (`claude setup-token`);
+# without it they are skipped, not failed. Pull requests from forks get no secrets, so
+# they run the deterministic tests only.
+#
+# Not a required check (making CI required is a board decision, company/GOVERNANCE.md).
+
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'server/**'
+      - 'e2e/**'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  E2E_TELEMETRY_DISABLED: '1'
+
+jobs:
+  ios:
+    name: e2e — iOS simulator
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # Node 22 runs both the server (node:sqlite, .ts sources) and e2e (needs 22.22.3+).
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      # Boots while the app builds: the newest iOS runtime, an iPhone 17 Pro when there is one.
+      - name: Boot a simulator
+        run: |
+          set -euo pipefail
+          PICK="$(xcrun simctl list devices available -j | node -e '
+            const payload = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
+            const runtimes = Object.entries(payload.devices)
+              .filter(([runtime]) => runtime.includes("SimRuntime.iOS-"))
+              .sort(([a], [b]) => b.localeCompare(a, undefined, { numeric: true }));
+            for (const [runtime, list] of runtimes) {
+              const pick = list.find((d) => d.name === "iPhone 17 Pro") ?? list.find((d) => d.name.startsWith("iPhone"));
+              if (pick) { process.stdout.write(`${pick.udid} ${runtime} ${pick.name}`); process.exit(0); }
+            }
+            process.exit(1);
+          ')"
+          UDID="${PICK%% *}"
+          echo "booting ${PICK#* } ($UDID)"
+          xcrun simctl boot "$UDID"
+          echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Default API_URL (http://localhost:3000): the simulator shares the runner's network.
+      - name: Build the app for the simulator
+        working-directory: app
+        run: flutter build ios --simulator
+
+      - name: Install e2e
+        working-directory: e2e
+        run: npm ci
+
+      # agent-device compiles its XCUITest runner on first use; keep the build between runs.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.agent-device/apple-runner/derived
+          key: agent-device-runner-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Install the app
+        run: |
+          set -euo pipefail
+          xcrun simctl bootstatus "$SIMULATOR_UDID"
+          xcrun simctl install "$SIMULATOR_UDID" app/build/ios/iphonesimulator/Runner.app
+
+      - name: Run the e2e tests
+        working-directory: e2e
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: npx e2e run --target ios --reporter list,junit
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: e2e-ios
+          path: |
+            e2e/.e2e
+            ~/.agent-device/daemon.log
+            ~/.agent-device/logs
+          if-no-files-found: warn
+          retention-days: 7
